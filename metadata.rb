@@ -1,0 +1,7 @@
+name             'choregraphie'
+maintainer       'SRE-Core'
+maintainer_email 'g.seux@criteo.com'
+license          'Apache License'
+description      'Allow to coordinate changes induced by chef'
+long_description 'Allow to coordinate changes induced by chef'
+version          '0.1.0'

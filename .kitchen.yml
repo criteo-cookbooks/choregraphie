@@ -1,0 +1,27 @@
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: chef_zero_scheduled_task
+
+platforms:
+- name: centos-6.7
+  provisioner:
+    require_chef_omnibus: true
+    chef_omnibus_url:     'http://repo-par.criteo.prod/omnibus_install.sh'
+  driver_config:
+    box:     opscode-centos-6.7
+    box_url: http://filer.criteo.prod/boxes/opscode_centos-6.7.box
+
+- name: windows-2012r2
+  driver_config:
+    # Enable provision for custom omnibus
+    communicator: winrm
+    customize:
+      vrde: 'on'
+      vrdeport: '5000-5100'
+      vrdeauthtype: 'null'
+    box:     windows-2012r2-standard-chef-12_4_1
+    box_url: http://filer.criteo.prod/boxes/windows-2012r2-standard-chef-12_4_1.box
+suites:
