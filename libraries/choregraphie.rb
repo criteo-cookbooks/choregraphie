@@ -1,13 +1,7 @@
+require 'chef/event_dispatch/dsl'
+require_relative './dsl'
+
 module Choregraphie
-  module DSL
-    @@choregraphies = []
-
-    # DSL helper
-    def choregraphie(name)
-      @@choregraphies << Choregraphie.new(name, &Proc.new)
-    end
-  end
-
   class Choregraphie
 
     attr_reader :name
@@ -16,17 +10,23 @@ module Choregraphie
       @name = name
       @before = []
       @after  = []
+      DSL.primitives.each do |klass|
+        method_name = klass.to_s.split('::').last.
+          gsub(/(.)([A-Z])/,'\1_\2').downcase
+
+        instance_eval <<-EOM
+        def #{method_name}(*args)
+          primitive = ::#{klass}.new(*args)
+          primitive.register(self)
+        end
+        EOM
+      end
       @self_before_instance_eval = eval "self", block.binding
       instance_eval &block
-      validate!
     end
 
     def method_missing(method, *args, &block)
       @self_before_instance_eval.send method, *args, &block
-    end
-
-    def validate!
-      true
     end
 
     def before(&block)
@@ -95,4 +95,3 @@ end
 Chef::Recipe.send(:include, Choregraphie::DSL)
 Chef::Resource.send(:include, Choregraphie::DSL)
 Chef::Provider.send(:include, Choregraphie::DSL)
-Chef::Node.send(:include, Choregraphie::DSL)
