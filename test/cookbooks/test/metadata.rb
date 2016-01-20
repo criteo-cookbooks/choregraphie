@@ -1,0 +1,7 @@
+name             'test'
+maintainer       'Criteo SRE'
+maintainer_email 'g.seux@criteo.com'
+license          'Apache License'
+description      'test cookbook for choregraphie'
+long_description ''
+version          '0.1.0'

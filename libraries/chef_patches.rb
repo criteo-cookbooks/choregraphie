@@ -1,4 +1,6 @@
 require 'chef/event_dispatch/base'
+require 'chef/event_dispatch/dispatcher'
+require 'chef/provider'
 
 class Chef
 

@@ -1,5 +1,9 @@
 require 'chef/event_dispatch/dsl'
-require_relative './dsl'
+require_relative 'dsl'
+require_relative 'chef_patches'
+require 'chef/recipe'
+require 'chef/resource'
+require 'chef/provider'
 
 module Choregraphie
   class Choregraphie
