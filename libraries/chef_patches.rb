@@ -2,6 +2,26 @@ require 'chef/event_dispatch/base'
 require 'chef/event_dispatch/dispatcher'
 require 'chef/provider'
 
+module ProviderMonkeyPatch
+
+  CHOREGRAPHIE_MONKEYPATCH = true unless defined?(CHOREGRAPHIE_MONKEYPATCH)
+
+  def ProviderMonkeyPatch.included(klass)
+    klass.class_eval do
+      alias_method :old_converge_by, :converge_by
+      def converge_by(description, &block)
+        if !Chef::Config[:why_run]
+          Chef::Log.debug "Calling resource_pre_converge event"
+          events.resource_pre_converge(@new_resource, @action, description)
+        end
+        old_converge_by(description, &block)
+      end
+    end
+  end
+end
+
+
+
 class Chef
 
   # add a new event called resource_pre_converge
@@ -19,15 +39,7 @@ class Chef
   end
 
   class Provider
-
-    alias_method :old_converge_by, :converge_by
-
-    def converge_by(description, &block)
-      if !Chef::Config[:why_run]
-        Chef::Log.debug "Calling resource_pre_converge event"
-        events.resource_pre_converge(@new_resource, @action, description)
-      end
-      old_converge_by(description, &block)
-    end
+    # since cookbook libraries are *loaded* in each cookbook that depends on it
+    include ProviderMonkeyPatch unless defined?(CHOREGRAPHIE_MONKEYPATCH)
   end
 end
