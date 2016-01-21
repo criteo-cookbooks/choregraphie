@@ -13,16 +13,6 @@ platforms:
   driver_config:
     box:     opscode-centos-6.7
     box_url: http://filer.criteo.prod/boxes/opscode_centos-6.7.box
-- name: windows-2012r2
-  driver_config:
-    # Enable provision for custom omnibus
-    communicator: winrm
-    customize:
-      vrde: 'on'
-      vrdeport: '5000-5100'
-      vrdeauthtype: 'null'
-    box:     windows-2012r2-standard-chef-12_4_1
-    box_url: http://filer.criteo.prod/boxes/windows-2012r2-standard-chef-12_4_1.box
 suites:
   - name: default
     run_list:
