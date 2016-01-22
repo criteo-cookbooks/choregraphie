@@ -1,4 +1,3 @@
 # choregraphie
 
-TODO: Enter the cookbook description here.
-
+choregraphie is the french for choreography.
