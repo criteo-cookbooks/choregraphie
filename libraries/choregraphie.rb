@@ -15,11 +15,8 @@ module Choregraphie
       @before = []
       @after  = []
       DSL.primitives.each do |klass|
-        method_name = klass.to_s.split('::').last.
-          gsub(/(.)([A-Z])/,'\1_\2').downcase
-
         instance_eval <<-EOM
-        def #{method_name}(*args)
+        def #{klass.primitive_name}(*args)
           primitive = ::#{klass}.new(*args)
           primitive.register(self)
         end
