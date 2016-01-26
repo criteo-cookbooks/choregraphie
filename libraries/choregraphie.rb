@@ -14,6 +14,10 @@ module Choregraphie
       @name = name
       @before = []
       @after  = []
+
+      # read all available primitives and make them available with a method
+      # using their name. It allows to call `check_file '/tmp/titi'` to
+      # instanciate the CheckFile primitive
       DSL.primitives.each do |klass|
         instance_eval <<-EOM
         def #{klass.primitive_name}(*args)
@@ -22,6 +26,9 @@ module Choregraphie
         end
         EOM
       end
+
+      # this + method_missing allows to access method defined outside of the
+      # block (in the recipe context for instance)
       @self_before_instance_eval = eval "self", block.binding
       instance_eval &block
     end

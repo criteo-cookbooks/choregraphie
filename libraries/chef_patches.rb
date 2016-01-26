@@ -20,8 +20,6 @@ module ProviderMonkeyPatch
   end
 end
 
-
-
 class Chef
 
   # add a new event called resource_pre_converge

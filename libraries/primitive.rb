@@ -7,9 +7,10 @@ module Choregraphie
 
     def self.inherited(klass)
       DSL.register_primitive(klass)
-      # will be used in the choregraphie dsl
+
       # can be defined in any primitive by: "primitive_name :my_name"
       # default to the name of the class
+      # the name will be used in a choregraphie block
       klass.define_singleton_method(:primitive_name) do |name=nil|
         @name = name.to_sym if name
         @name
