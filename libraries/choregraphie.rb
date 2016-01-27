@@ -18,7 +18,7 @@ module Choregraphie
       # read all available primitives and make them available with a method
       # using their name. It allows to call `check_file '/tmp/titi'` to
       # instanciate the CheckFile primitive
-      DSL.primitives.each do |klass|
+      Primitive.all.each do |klass|
         instance_eval <<-EOM
         def #{klass.primitive_name}(*args)
           primitive = ::#{klass}.new(*args)

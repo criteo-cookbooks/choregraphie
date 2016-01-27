@@ -1,12 +1,19 @@
 require_relative './choregraphie'
 module Choregraphie
+
   class Primitive
+    @@primitives    = []
+
     def register(choregraphie)
       raise NotImplementedError, "You must implement :register method"
     end
 
+    def self.all
+      @@primitives
+    end
+
     def self.inherited(klass)
-      DSL.register_primitive(klass)
+      @@primitives << klass
 
       # can be defined in any primitive by: "primitive_name :my_name"
       # default to the name of the class
