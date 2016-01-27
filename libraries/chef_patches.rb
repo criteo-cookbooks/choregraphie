@@ -4,8 +4,6 @@ require 'chef/provider'
 
 module ProviderMonkeyPatch
 
-  CHOREGRAPHIE_MONKEYPATCH = true unless defined?(CHOREGRAPHIE_MONKEYPATCH)
-
   def ProviderMonkeyPatch.included(klass)
     klass.class_eval do
       alias_method :old_converge_by, :converge_by
@@ -38,6 +36,6 @@ class Chef
 
   class Provider
     # since cookbook libraries are *loaded* in each cookbook that depends on it
-    include ProviderMonkeyPatch unless defined?(CHOREGRAPHIE_MONKEYPATCH)
+    include ProviderMonkeyPatch unless included_modules.include?(ProviderMonkeyPatch)
   end
 end

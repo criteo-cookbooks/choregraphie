@@ -91,7 +91,7 @@ module Choregraphie
             end
           end
         end
-      when Symbol
+      else
         #TODO
         raise "Symbol type is not yet supported"
       end

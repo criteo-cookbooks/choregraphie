@@ -1,4 +1,4 @@
-require_relative './choregraphie'
+require_relative 'choregraphie'
 module Choregraphie
 
   class Primitive
