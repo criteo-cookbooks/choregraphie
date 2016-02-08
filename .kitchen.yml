@@ -9,7 +9,8 @@ platforms:
 - name: centos-6.7
   provisioner:
     require_chef_omnibus: true
-    chef_omnibus_url:     'http://repo-par.criteo.prod/omnibus_install.sh'
+  # Dependency of chef 12.6.0 at least
+  # chef_omnibus_url:     'http://repo-par.criteo.prod/omnibus_install.sh'
   driver_config:
     box:     opscode-centos-6.7
     box_url: http://filer.criteo.prod/boxes/opscode_centos-6.7.box
