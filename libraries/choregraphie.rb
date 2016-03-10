@@ -60,8 +60,18 @@ module Choregraphie
     end
 
     # Ensure resource exists and its provider supports whyrun
-    def self.ensure_whyrun_supported(run_context, resource_name)
+    def self.ensure_whyrun_supported(run_context, resource_name, ignore_missing_resource)
+      begin
       resource = run_context.resource_collection.find(resource_name)
+      rescue Chef::Exceptions::ResourceNotFound
+        if ignore_missing_resource
+          # some resources are defined only when used
+          # so we ignore them
+          return
+        else
+          raise
+        end
+      end
       if resource
         resource.allowed_actions.
           reject { |a| a == :nothing }.
@@ -79,7 +89,8 @@ module Choregraphie
     end
 
 
-    def on(event)
+    def on(event, opts = {})
+      opts = Mash.new(opts)
       Chef::Log.warn("Registering on #{event} for #{@name}")
       case event
       when String # resource name
@@ -89,7 +100,7 @@ module Choregraphie
 
         Chef.event_handler do
           on :converge_start do |run_context|
-            Choregraphie.ensure_whyrun_supported(run_context, resource_name)
+            Choregraphie.ensure_whyrun_supported(run_context, resource_name, opts['ignore_missing_resource'])
           end
         end
 
