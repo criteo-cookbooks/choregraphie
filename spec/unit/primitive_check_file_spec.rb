@@ -1,4 +1,4 @@
-require_relative '../../libraries/primitive'
+require_relative '../../libraries/primitive_check_file'
 
 describe Choregraphie::CheckFile do
   let(:choregraphie) do
