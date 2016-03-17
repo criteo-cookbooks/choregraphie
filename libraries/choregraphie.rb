@@ -19,8 +19,8 @@ module Choregraphie
       # instanciate the CheckFile primitive
       Primitive.all.each do |klass|
         instance_eval <<-EOM
-        def #{klass.primitive_name}(*args)
-          primitive = ::#{klass}.new(*args)
+        def #{klass.primitive_name}(*args, &block)
+          primitive = ::#{klass}.new(*args, &block)
           primitive.register(self)
         end
         EOM
