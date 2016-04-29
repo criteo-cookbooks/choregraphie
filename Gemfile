@@ -6,7 +6,7 @@ gem 'chefspec'
 gem 'rake'
 gem 'foodcritic'
 gem 'chef-zero-scheduled-task'
-gem 'chef'
+gem 'chef', '> 12.6'
 
 group :ec2 do
   gem 'test-kitchen'
