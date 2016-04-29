@@ -8,12 +8,22 @@ provisioner:
 platforms:
 - name: centos-6.7
   provisioner:
-    require_chef_omnibus: true
-  # Dependency of chef 12.6.0 at least
-  # chef_omnibus_url:     'http://repo-par.criteo.prod/omnibus_install.sh'
+    require_chef_omnibus: 12.5.1
   driver_config:
     box:     opscode-centos-6.7
-    box_url: http://filer.criteo.prod/boxes/opscode_centos-6.7.box
+
+- name: centos-7.2
+  provisioner:
+    require_chef_omnibus: 12.5.1
+  driver_config:
+    box:     criteo-centos-7.2-core
+
+- name: windows-2012r2
+  provisioner:
+    require_chef_omnibus: 12.5.1
+  driver_config:
+    box: criteo-windows-2012r2-standard
+
 suites:
   - name: default
     run_list:

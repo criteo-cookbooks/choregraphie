@@ -5,7 +5,7 @@ Metrics/LineLength:
 # Based on data from http://sideeffect.kr/popularconvention#ruby
 #
 ### Comma after each line in a list
-Style/TrailingComma:
+Style/TrailingCommaInLiteral:
   EnforcedStyleForMultiline: comma
 # It is very common to add key/value pairs to hashes in Chef attributes. Making
 # sure each line has a comma diminishes the chance of someone making an error
@@ -27,9 +27,10 @@ Style/TrailingComma:
 ### Align hashes as a table
 Style/AlignHash:
   EnforcedColonStyle: table
-  EnforcedHashRocketStyle: table
-# When dealing with long key names, it is easier to read hashes aligned as
-# tables. This is true both for colon and rocket style hashes.
+  EnforcedHashRocketStyle: key
+# When dealing with long key names, it is easier to read hashes in colon
+# notation aligned as tables. However, the same does not seem to hold true
+# for hashes in rocket notation due to strange alignment rules.
 #
 # Instead of writing:
 #   default['cookbook']['attribute'] = {
