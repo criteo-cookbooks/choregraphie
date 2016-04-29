@@ -16,3 +16,5 @@ group :ec2 do
 end
 
 # Other gems should go after this comment
+gem 'webmock'
+gem 'diplomat'
