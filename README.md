@@ -2,6 +2,8 @@
 
 choregraphie is French for choreography.
 
+[![Build Status](https://travis-ci.org/criteo-cookbooks/choregraphie.svg?branch=master)](https://travis-ci.org/criteo-cookbooks/choregraphie)
+
 Concepts
 --------
 
