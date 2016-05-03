@@ -23,7 +23,7 @@ module Choregraphie
         @name = name.to_sym if name
         @name
       end
-      name = klass.to_s.split('::').last.gsub(/(.)([A-Z])/,'\1_\2').downcase.to_sym
+      name = klass.to_s.split('::').last.gsub(/(.)([A-Z]+)/,'\1_\2').downcase.to_sym
       klass.primitive_name name
     end
   end

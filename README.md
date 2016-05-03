@@ -18,3 +18,18 @@ Only chef >= 12.6 is supported (due to a dependency on :before notifications).
 
 Choregraphies can be applied only on resources that support whyrun (currently chef default resources and resource/provider style).
 Custom resources (the whole resource defined in the resources/ directory) are not supported at the moment.
+
+Available Primitives
+--------------------
+
+See the code for up-to-date information.
+
+* CheckFile: `check_file '/tmp/do_it'` will wait until the given file exists on the filesystem. This file is cleaned after.
+* WaitUntil: `wait_until "ping -c 1 google.com"` will wait until the command exit with a 0 status. This primitives supports string, mixlib/shellout instance and blocks.
+* ConsulLock: `consul_lock {path: '/lock/my_app', id: 'my_node', concurrency: 5}` will grab a lock from consul and release it afterwards. This primitive is based on optimistic concurrency rather than consul sessions.
+
+
+Missing Primitives
+------------------
+
+Write your own, it is easy.
