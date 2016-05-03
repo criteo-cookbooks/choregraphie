@@ -25,6 +25,7 @@ end
 
 test_simple_resource 'not_converging' do
   content 'not_converging'
+  only_if { false }
 end
 
 
@@ -39,7 +40,7 @@ choregraphie 'execute' do
     require 'fileutils'
     FileUtils.touch(::File.join('/tmp', filename))
   end
-  after do
-    Chef::Log.info("I am called after!")
+  cleanup do
+    Chef::Log.info("I am called at the end!")
   end
 end

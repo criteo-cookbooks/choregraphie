@@ -8,19 +8,19 @@ provisioner:
 platforms:
 - name: centos-6.7
   provisioner:
-    require_chef_omnibus: 12.5.1
+    require_chef_omnibus: 12.8.1
   driver_config:
     box:     opscode-centos-6.7
 
 - name: centos-7.2
   provisioner:
-    require_chef_omnibus: 12.5.1
+    require_chef_omnibus: 12.8.1
   driver_config:
     box:     criteo-centos-7.2-core
 
 - name: windows-2012r2
   provisioner:
-    require_chef_omnibus: 12.5.1
+    require_chef_omnibus: 12.8.1
   driver_config:
     box: criteo-windows-2012r2-standard
 

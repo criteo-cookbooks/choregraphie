@@ -35,7 +35,7 @@ describe Choregraphie::ConsulLock do
 
         expect(Semaphore).to receive(:get_or_create).and_return(*([failing_lock] * fails + [lock]))
 
-        choregraphie.after.each { |block| block.call }
+        choregraphie.cleanup.each { |block| block.call }
       end
     end
   end
