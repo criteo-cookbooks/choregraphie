@@ -7,7 +7,7 @@ choregraphie is French for choreography.
 Concepts
 --------
 
-A **choregraphie** describes actions which operate on some chef events. It allows, for instance, to run an action before and after the convergence of a resource.
+A **choregraphie** describes actions which operate on some chef events. It allows, for instance, to run an action before and after the convergence of a resource (currently: after means at the end of a sucessful run).
 
 A **primitive** is a helper for common idioms in choregraphies. Examples: grabbing a lock, silencing the monitoring, executing a shell command.
 
@@ -33,3 +33,12 @@ Missing Primitives
 ------------------
 
 Write your own, it is easy.
+
+How to write a primitive
+------------------------
+
+You should have a look at the example primitives such as `check_file`.
+
+Primitives can implement two callbacks:
+- _before_ is the callback called before the start of choregraphie (usually before the convergence of a resource)
+- _cleanup_ is the callback called at the end of successful chef-client run. Cleanup is always called so primitives must be efficient and safe to run at the end of all chef-client runs (for instance cleaning a file only if exists).

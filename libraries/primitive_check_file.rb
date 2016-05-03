@@ -14,8 +14,8 @@ module Choregraphie
         sleep(@period) until ::File.exists?(@file_path)
       end
 
-      choregraphie.after do
-        ::FileUtils.rm(@file_path)
+      choregraphie.cleanup do
+        ::FileUtils.rm(@file_path) if File.exists?(@file_path)
       end
     end
   end

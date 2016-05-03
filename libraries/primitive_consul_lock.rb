@@ -1,5 +1,4 @@
 require_relative 'primitive'
-require 'diplomat'
 
 # This primitive is based on optimistic concurrency (using compare-and-swap) rather than consul sessions.
 # It allows to support the unavailability of the local consul agent (for reboot, reinstall, ...)
@@ -50,7 +49,7 @@ module Choregraphie
         wait_until(:enter) { semaphore.enter(@options[:id]) }
       end
 
-      choregraphie.after do
+      choregraphie.cleanup do
         wait_until(:exit) { semaphore.exit(@options[:id]) }
       end
     end
@@ -71,6 +70,7 @@ module Choregraphie
   class Semaphore
 
     def self.get_or_create(path, concurrency)
+      require 'diplomat'
       retry_left = 5
       value = begin
                 Diplomat::Kv.get(path, decode_values: true)

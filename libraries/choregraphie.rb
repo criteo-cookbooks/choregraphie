@@ -12,7 +12,7 @@ module Choregraphie
     def initialize(name, &block)
       @name = name
       @before = []
-      @after  = []
+      @cleanup= []
 
       # read all available primitives and make them available with a method
       # using their name. It allows to call `check_file '/tmp/titi'` to
@@ -36,8 +36,8 @@ module Choregraphie
       @self_before_instance_eval.send method, *args, &block
     end
 
-    def after_block_name(resource_name)
-      "After callbacks for #{@name}/#{resource_name}"
+    def cleanup_block_name(resource_name)
+      "Cleanup callbacks for #{@name}/#{resource_name}"
     end
     def before_block_name(resource_name)
       "Before callbacks for #{@name}/#{resource_name}"
@@ -51,12 +51,12 @@ module Choregraphie
       @before
     end
 
-    def after(&block)
+    def cleanup(&block)
       if block
-        Chef::Log.debug("Registering an after block for #{@name}")
-        @after << block
+        Chef::Log.debug("Registering an cleanup block for #{@name}")
+        @cleanup << block
       end
-      @after
+      @cleanup
     end
 
     # Ensure resource exists and its provider supports whyrun
@@ -96,7 +96,7 @@ module Choregraphie
       when String # resource name
         resource_name = event
         before_events = before
-        after_events  = after
+        cleanup_events= cleanup
 
         Chef.event_handler do
           on :converge_start do |run_context|
@@ -112,13 +112,11 @@ module Choregraphie
           action :nothing
           subscribes :create, event, :before
         end
-        ruby_block after_block_name(event) do
-          block do
-            Chef::Log.debug "Resource #{resource_name} has converged"
-            before_events.each { |b| b.call(resource_name) }
+        Chef.event_handler do
+          on :run_completed do
+            Chef::Log.debug "Chef-client successful, will clean up all primitives"
+            cleanup_events.each { |b| b.call(resource_name) }
           end
-          action :nothing
-          subscribes :create, event, :immediately
         end
       else
         #TODO
