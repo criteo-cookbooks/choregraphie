@@ -21,3 +21,6 @@ before_deploy:
   -in .travis/client.pem.enc -out .travis/client.pem -d
 - openssl aes-256-cbc -K $encrypted_40daeb36df73_key -iv $encrypted_40daeb36df73_iv
   -in .travis/travis-ci.pem.enc -out .travis/travis-ci.pem -d
+before_install:
+- openssl aes-256-cbc -K $encrypted_40daeb36df73_key -iv $encrypted_40daeb36df73_iv
+  -in .travis/travis-ci.pem.enc -out .travis/travis-ci.pem -d

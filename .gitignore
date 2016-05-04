@@ -14,5 +14,3 @@ bin/*
 
 .kitchen/
 .kitchen.local.yml
-
-.travis/*.pem
