@@ -1,0 +1,42 @@
+---
+# The following environment variables are required:
+# - AWS_ACCESS_KEY_ID
+# - AWS_SECRET_ACCESS_KEY
+# - AWS_SSH_KEY_ID
+# - AWS_REGION
+#
+# Optional environment variables:
+# - AWS_SECURITY_GROUP
+# - AWS_SUBNET
+# - KITCHEN_NO_CONCURRENCY set it to true if you do not want concurrency
+
+driver:
+  name: ec2
+  instance_type: t2.micro
+  associate_public_ip: true
+  region: <%= ENV['AWS_REGION'] || 'us-west-2' %>
+  subnet_filter:
+    tag:   'Name'
+    value: <%= ENV['AWS_SUBNET'] || 'chef-testing-opensource-vpc-subnet' %>
+  security_group_filter:
+    tag:   'Name'
+    value: <%= ENV['AWS_SECURITY_GROUP'] || 'chef-testing-opensource-vpc-security-group' %>
+  block_device_mappings:
+    - device_name: /dev/sda1
+      ebs:
+        volume_type: gp2
+        delete_on_termination: true
+
+transport:
+  ssh_key: <%= ENV['HOME'] %>/.ssh/id_rsa
+
+platforms:
+  - name: centos-6
+    driver:
+      image_id: ami-05cf2265
+  - name: centos-7
+    driver:
+      image_id: ami-d2c924b2
+  - name: windows-2012r2
+    driver:
+      image_id: ami-df8767bf

@@ -9,7 +9,7 @@ RSpec::Core::RakeTask.new(:rspec)
 desc 'Run kitchen tests'
 task :test_kitchen do
   Kitchen.logger = Kitchen.default_file_logger
-  @loader = Kitchen::Loader::YAML.new(project_config: './.kitchen.local.yml')
+  @loader = Kitchen::Loader::YAML.new(project_config: './.kitchen.ec2.yml')
   config = Kitchen::Config.new(loader: @loader)
   if ENV['KITCHEN_NO_CONCURRENCY']
     config.instances.each do |instance|
@@ -25,5 +25,5 @@ task :test_kitchen do
 end
 
 tasks = [:foodcritic, :rspec]
-tasks << :test_kitchen if ENV['']
+tasks << :test_kitchen if ENV['encrypted_40daeb36df73_iv']
 task default: tasks
