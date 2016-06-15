@@ -108,7 +108,6 @@ module Choregraphie
         Chef::Log.debug("Someone updated the lock at the same time, will retry") unless result
         result
       else
-        Chef::Log.error("#{name} was not holding the lock. This is very wrong or someone removed it from lock")
         true
       end
     end
