@@ -73,6 +73,7 @@ module Choregraphie
       require 'diplomat'
       retry_left = 5
       value = begin
+                Chef::Log.info "Fetch lock state for #{path}"
                 Diplomat::Kv.get(path, decode_values: true)
               rescue Diplomat::KeyNotFound
                 initial =  { version: 1, concurrency: concurrency, holders: {} }.to_json
