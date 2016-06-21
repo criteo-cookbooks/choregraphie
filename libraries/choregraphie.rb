@@ -113,8 +113,11 @@ module Choregraphie
           subscribes :create, event, :before
         end
         Chef.event_handler do
-          on :run_completed do
-            Chef::Log.debug "Chef-client successful, will clean up all primitives"
+          # Using converge_complete instead of run_completed bk reboot
+          # resources do not make the run fail
+          # and we don't want to cleanup just before the reboot
+          on :converge_complete do
+            Chef::Log.debug "Chef-client convergence successful, will clean up all primitives"
             cleanup_events.each { |b| b.call(resource_name) }
           end
         end
