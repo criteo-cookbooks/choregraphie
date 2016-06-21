@@ -13,12 +13,13 @@ describe Choregraphie::ConsulLock do
 
   {
     'when every action works on first try' => 0,
-    'when actions do not work on first try' => 18,
+    'when actions do not work on first try' => 3,
   }.each do |ctxt, fails|
     context ctxt do
       it 'must enter the lock' do
         failing_lock = double('failing_lock')
         expect(failing_lock).to receive(:enter).with("my_node").exactly(fails).times.and_return(false) if fails > 0
+
         lock = double('lock')
         expect(lock).to receive(:enter).with("my_node").and_return(true)
 

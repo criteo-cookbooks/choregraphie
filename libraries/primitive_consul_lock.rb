@@ -25,22 +25,30 @@ module Choregraphie
       Semaphore.get_or_create(path, @options[:concurrency])
     end
 
-    def wait_until(action)
+    def backoff
+      Chef::Log.warn "Will sleep #{@options[:backoff]}"
+      sleep @options[:backoff]
+      false # indicates failure
+    end
+
+    def wait_until(action, opts = {})
       Chef::Log.info "Will #{action} the lock #{path}"
-      loop do
-        break if begin
-          begin
-            yield
-          rescue => e
-            Chef::Log.warn "Error while #{action}-ing lock"
-            Chef::Log.warn e
-            false
-          end
+      success = 0.upto(opts[:max_failures] || Float::INFINITY).any? do |tries|
+        begin
+          yield || backoff
+        rescue => e
+          Chef::Log.warn "Error while #{action}-ing lock"
+          Chef::Log.warn e
+          backoff
         end
-        Chef::Log.warn "Will sleep #{@options[:backoff]}"
-        sleep @options[:backoff]
       end
-      Chef::Log.info "#{action.to_s.capitalize}ed the lock #{path}"
+
+      if success
+        Chef::Log.info "#{action.to_s.capitalize}ed the lock #{path}"
+      else
+        Chef::Log.warn "Will ignore errors and since we've reached #{opts[:max_failures]} errors"
+      end
+
     end
 
     def register(choregraphie)
@@ -50,7 +58,13 @@ module Choregraphie
       end
 
       choregraphie.cleanup do
-        wait_until(:exit) { semaphore.exit(@options[:id]) }
+        # hack: We can ignore failure there since it is only to release
+        # the lock. If there is a temporary failure, we can wait for the
+        # next run to release the lock without compromising safety.
+        # The reason we have to be a bit more relaxed here, is that all
+        # chef run including a choregraphie with this primitive try to
+        # release the lock at the end of a successful run
+        wait_until(:exit, max_failures: 5) { semaphore.exit(@options[:id]) }
       end
     end
 
