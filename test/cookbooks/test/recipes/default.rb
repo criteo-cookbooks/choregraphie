@@ -44,7 +44,7 @@ choregraphie 'execute' do
     require 'fileutils'
     FileUtils.touch(::File.join('/tmp', filename))
   end
-  cleanup do |resource|
-    Chef::Log.warn("I am called at the end! (for #{resource})")
+  cleanup do
+    Chef::Log.warn('I am called at the end')
   end
 end
