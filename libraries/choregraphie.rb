@@ -13,7 +13,6 @@ module Choregraphie
       @name = name
       @before = []
       @cleanup= []
-      @cleanup_defined = false
 
       # read all available primitives and make them available with a method
       # using their name. It allows to call `check_file '/tmp/titi'` to
@@ -25,6 +24,19 @@ module Choregraphie
           primitive.register(self)
         end
         EOM
+      end
+
+      # bind cleanup in local context to access it in event_handler
+      cleanup_events = cleanup
+
+      Chef.event_handler do
+        # Using converge_complete instead of run_completed bk reboot
+        # resources do not make the run fail
+        # and we don't want to cleanup just before the reboot
+        on :converge_complete do
+          Chef::Log.debug "Chef-client convergence successful, will clean up all primitives"
+          cleanup_events.each { |b| b.call }
+        end
       end
 
       # this + method_missing allows to access method defined outside of the
@@ -97,7 +109,6 @@ module Choregraphie
       when String # resource name
         resource_name = event
         before_events = before
-        cleanup_events= cleanup
 
         Chef.event_handler do
           on :converge_start do |run_context|
@@ -112,19 +123,6 @@ module Choregraphie
           end
           action :nothing
           subscribes :create, event, :before
-        end
-
-        unless @cleanup_defined # define the handler only once
-          Chef.event_handler do
-            # Using converge_complete instead of run_completed bk reboot
-            # resources do not make the run fail
-            # and we don't want to cleanup just before the reboot
-            on :converge_complete do
-              Chef::Log.debug "Chef-client convergence successful, will clean up all primitives"
-              cleanup_events.each { |b| b.call }
-            end
-          end
-          @cleanup_defined = true
         end
       else
         #TODO
