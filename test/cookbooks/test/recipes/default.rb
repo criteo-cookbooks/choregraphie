@@ -4,6 +4,10 @@
 #
 # Copyright (c) 2016 The Authors, All Rights Reserved.
 
+# Need to clean up in case of multiple convergence tests
+execute 'Clean up machine' do
+  command "rm /tmp/not_converging.tmp"
+end
 
 # Using chef provided resource
 execute 'converging' do
@@ -35,12 +39,12 @@ choregraphie 'execute' do
   on 'test_simple_resource[converging]'
   on 'test_simple_resource[not_converging]'
   before do |resource|
-    Chef::Log.info("I am called before! for resource " + resource.to_s)
+    Chef::Log.warn("I am called before! for resource " + resource.to_s)
     filename = resource.to_s.gsub(/\W+/, '_').gsub(/_$/,'')
     require 'fileutils'
     FileUtils.touch(::File.join('/tmp', filename))
   end
   cleanup do
-    Chef::Log.info("I am called at the end!")
+    Chef::Log.warn('I am called at the end')
   end
 end
