@@ -7,9 +7,38 @@
 require 'spec_helper'
 
 describe 'test::default' do
-  context 'When all attributes are default, on an unspecified platform' do
+  context 'When all attributes are default, on centos 6.7' do
     let(:chef_run) do
-      runner = ChefSpec::ServerRunner.new
+      runner = ChefSpec::SoloRunner.new(
+        platform: 'centos',
+        version:  '6.7'
+      )
+      runner.converge(described_recipe)
+    end
+
+    it 'converges successfully' do
+      expect { chef_run }.to_not raise_error
+    end
+  end
+  context 'When all attributes are default, on centos 7.2.1511' do
+    let(:chef_run) do
+      runner = ChefSpec::SoloRunner.new(
+        platform: 'centos',
+        version:  '7.2.1511'
+      )
+      runner.converge(described_recipe)
+    end
+
+    it 'converges successfully' do
+      expect { chef_run }.to_not raise_error
+    end
+  end
+  context 'When all attributes are default, on windows 6.3.9600' do
+    let(:chef_run) do
+      runner = ChefSpec::SoloRunner.new(
+        platform: 'windows',
+        version:  '2008R2'
+      )
       runner.converge(described_recipe)
     end
 
