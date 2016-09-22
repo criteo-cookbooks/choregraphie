@@ -16,6 +16,13 @@ module Choregraphie
 
       @options[:backoff] ||= 5 # seconds
 
+      if @options[:consul_token]
+        require 'diplomat'
+        Diplomat.configure do |config|
+          config.acl_token = @options[:consul_token]
+        end
+      end
+
       # this block could be used to configure diplomat if needed
       yield if block_given?
     end

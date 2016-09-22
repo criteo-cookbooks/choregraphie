@@ -3,23 +3,35 @@ driver:
   name: vagrant
 
 provisioner:
-  name: chef_zero_scheduled_task
+  name: chef_zero
   require_chef_omnibus: 12.8.1
+  attributes:
+    authorization:
+      sudo:
+        users:
+          - vagrant
 
 platforms:
-- name: centos-6.7
+- name: centos-6
+  transport:
+    name: speedy_ssh
   driver_config:
     box:     opscode-centos-6.7
 
-- name: centos-7.2
+- name: centos-7
+  transport:
+    name: speedy_ssh
   driver_config:
     box:     criteo-centos-7.2-core
 
 - name: windows-2012r2
+  transport:
+    name: winrm
+    elevated: true
+    elevated_username: System
+    elevated_password: null
   driver_config:
     box: criteo-windows-2012r2-standard
 
 suites:
-  - name: default
-    run_list:
-      - recipe[test]
+<%= IO.read('.kitchen_suites.yml') %>
