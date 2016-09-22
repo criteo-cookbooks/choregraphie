@@ -1,4 +1,6 @@
 require_relative 'primitive'
+require 'chef/mash'
+require 'json'
 
 # This primitive is based on optimistic concurrency (using compare-and-swap) rather than consul sessions.
 # It allows to support the unavailability of the local consul agent (for reboot, reinstall, ...)
@@ -93,22 +95,32 @@ module Choregraphie
     def self.get_or_create(path, concurrency)
       require 'diplomat'
       retry_left = 5
-      value = begin
-                Chef::Log.info "Fetch lock state for #{path}"
-                Diplomat::Kv.get(path, decode_values: true)
-              rescue Diplomat::KeyNotFound
-                initial =  { version: 1, concurrency: concurrency, holders: {} }.to_json
-                Chef::Log.info "Lock for #{path} did not exist, creating with value #{initial}"
-                Diplomat::Kv.put(path, initial, cas: 0) # we ignore success/failure of CaS
-                (retry_left -= 1) > 0 ? retry : raise
-              end.first
-              Semaphore.new(path, value)
+      value =  Mash.new({ version: 1, concurrency: concurrency, holders: {} })
+      current_lock = begin
+                       Chef::Log.info "Fetch lock state for #{path}"
+                       Diplomat::Kv.get(path, decode_values: true)
+                     rescue Diplomat::KeyNotFound
+                       Chef::Log.info "Lock for #{path} did not exist, creating with value #{value}"
+                       Diplomat::Kv.put(path, value.to_json, cas: 0) # we ignore success/failure of CaS
+                       (retry_left -= 1) > 0 ? retry : raise
+                     end.first
+      desired_lock = bootstrap_lock(value, current_lock)
+      Semaphore.new(path, desired_lock)
     end
 
-    def initialize(path, value)
+    def self.bootstrap_lock(desired_value, current_lock)
+      desired_lock = current_lock.dup
+      desired_value = desired_value.dup
+      current_holders = Mash.new(JSON.parse(current_lock['Value'])['holders'])
+      desired_value['holders'] = current_holders
+      desired_lock['Value'] = desired_value.to_json
+      desired_lock
+    end
+
+    def initialize(path, new_lock)
       @path = path
-      @h    = JSON.parse(value['Value'])
-      @cas  = value['ModifyIndex']
+      @h    = JSON.parse(new_lock['Value'])
+      @cas  = new_lock['ModifyIndex']
     end
 
     def enter(name)
