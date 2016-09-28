@@ -13,6 +13,7 @@ describe 'test::default' do
         platform: 'centos',
         version:  '6.7'
       )
+      stub_command("test -f /tmp/not_converging.tmp").and_return(0)
       runner.converge(described_recipe)
     end
 
@@ -26,6 +27,7 @@ describe 'test::default' do
         platform: 'centos',
         version:  '7.2.1511'
       )
+      stub_command("test -f /tmp/not_converging.tmp").and_return(0)
       runner.converge(described_recipe)
     end
 
@@ -39,6 +41,7 @@ describe 'test::default' do
         platform: 'windows',
         version:  '2008R2'
       )
+      stub_command("test -f /tmp/not_converging.tmp").and_return(0)
       runner.converge(described_recipe)
     end
 
