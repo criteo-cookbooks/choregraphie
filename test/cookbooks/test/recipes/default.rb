@@ -7,6 +7,7 @@
 # Need to clean up in case of multiple convergence tests
 execute 'Clean up machine' do
   command "rm /tmp/not_converging.tmp"
+  only_if "test -f /tmp/not_converging.tmp"
 end
 
 # Using chef provided resource
@@ -32,12 +33,17 @@ test_simple_resource 'not_converging' do
   only_if { false }
 end
 
+log "a_simple_log"
+log "another_log"
 
 choregraphie 'execute' do
   on 'execute[converging]'
   on 'execute[not_converging]'
   on 'test_simple_resource[converging]'
   on 'test_simple_resource[not_converging]'
+
+  on /^log\[/
+
   before do |resource|
     Chef::Log.warn("I am called before! for resource " + resource.to_s)
     filename = resource.to_s.gsub(/\W+/, '_').gsub(/_$/,'')

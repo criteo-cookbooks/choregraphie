@@ -7,14 +7,39 @@ choregraphie is French for choreography.
 Concepts
 --------
 
+A **protected resource** is a resource whose convergence can induce downtime on the service. For instance, `service[mydatabase]` is usually a resource to protect.
+
 A **choregraphie** describes actions which operate on some chef events. It allows, for instance, to run an action before and after the convergence of a resource (currently: after means at the end of a sucessful run).
 
 A **primitive** is a helper for common idioms in choregraphies. Examples: grabbing a lock, silencing the monitoring, executing a shell command.
+
+
+Example
+-------
+
+    choregraphie 'my elasticsearch' do
+      # protect against service and network restart
+      on 'service[mydatase]'
+      on 'service[network]'
+
+      # protect against all reboot resources
+      on /^reboot\[/
+
+      # built-in primitive
+      consul_lock(path: 'choregraphie/locks/myes', concurrency: 2)
+
+      before do
+        # roll your own code
+        downtime_in_monitoring
+      end
+    end
 
 Support
 -------
 
 Only chef >= 12.6 is supported (due to a dependency on :before notifications).
+
+Usage of compat\_resource cookbook is highly discouraged as it modifies chef behavior and has silently broken :before notification in the past which are the foundation of choregraphie. Branch 'criteo' in criteo-forks organization is a safely patched version of this cookbook to avoid any chef monkeypatching.
 
 Choregraphies can be applied only on resources that support whyrun (currently chef default resources and resource/provider style).
 Custom resources (the whole resource defined in the resources/ directory) are not supported at the moment.

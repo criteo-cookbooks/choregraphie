@@ -101,6 +101,27 @@ module Choregraphie
       end
     end
 
+    def setup_hook(resource_name, opts)
+
+      # catch before in the closure
+      before_events = before
+
+      Chef.event_handler do
+        on :converge_start do |run_context|
+          Choregraphie.ensure_whyrun_supported(run_context, resource_name, opts['ignore_missing_resource'])
+        end
+      end
+
+      ruby_block before_block_name(resource_name) do
+        block do
+          Chef::Log.debug "Resource #{resource_name} will converge"
+          before_events.each { |b| b.call(resource_name) }
+        end
+        action :nothing
+        subscribes :create, resource_name, :before
+      end
+    end
+
 
     def on(event, opts = {})
       opts = Mash.new(opts)
@@ -108,28 +129,20 @@ module Choregraphie
       case event
       when String # resource name
         resource_name = event
-        before_events = before
 
-        Chef.event_handler do
-          on :converge_start do |run_context|
-            Choregraphie.ensure_whyrun_supported(run_context, resource_name, opts['ignore_missing_resource'])
-          end
-        end
+        setup_hook(resource_name, opts)
+      when Regexp
+        # list all resources already defined
+        run_context.resource_collection.
+          map(&:to_s).select { |resource_name| resource_name =~ event }.
+          each { |resource_name| setup_hook(resource_name, opts) }
 
-        ruby_block before_block_name(event) do
-          block do
-            Chef::Log.debug "Resource #{resource_name} will converge"
-            before_events.each { |b| b.call(resource_name) }
-          end
-          action :nothing
-          subscribes :create, event, :before
-        end
+        # TODO find a way to get resources defined after choregraphie
       else
         #TODO
         raise "Symbol type is not yet supported"
       end
     end
-
   end
 end
 
