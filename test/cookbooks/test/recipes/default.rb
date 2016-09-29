@@ -36,11 +36,19 @@ end
 log "a_simple_log"
 log "another_log"
 
+custom_resource 'my converging custom resource'
+
+custom_resource 'my useless custom resource' do
+  only_if { false }
+end
+
 choregraphie 'execute' do
   on 'execute[converging]'
   on 'execute[not_converging]'
   on 'test_simple_resource[converging]'
   on 'test_simple_resource[not_converging]'
+  on 'custom_resource[my converging custom resource]'
+  on 'custom_resource[my useless custom resource]'
 
   on /^log\[/
 
