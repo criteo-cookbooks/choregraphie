@@ -54,3 +54,5 @@ choregraphie 'execute' do
     Chef::Log.warn('I am called at the end')
   end
 end
+
+log "a_log_defined_after_choregraphie"

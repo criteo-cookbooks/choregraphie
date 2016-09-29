@@ -104,7 +104,7 @@ module Choregraphie
     def setup_hook(resource_name, opts)
 
       # catch before in the closure
-      before_events = before
+      before_events = method(:before)
 
       Chef.event_handler do
         on :converge_start do |run_context|
@@ -115,7 +115,7 @@ module Choregraphie
       ruby_block before_block_name(resource_name) do
         block do
           Chef::Log.debug "Resource #{resource_name} will converge"
-          before_events.each { |b| b.call(resource_name) }
+          before_events.call.each { |b| b.call(resource_name) }
         end
         action :nothing
         subscribes :create, resource_name, :before
@@ -137,7 +137,20 @@ module Choregraphie
           map(&:to_s).select { |resource_name| resource_name =~ event }.
           each { |resource_name| setup_hook(resource_name, opts) }
 
-        # TODO find a way to get resources defined after choregraphie
+        setup_hook = method(:setup_hook) # catches setup_hook in the closure
+        Chef.event_handler do
+          on :converge_start do |run_context|
+            run_context.resource_collection.
+              map(&:to_s).select { |resource_name| resource_name =~ event }.
+              each do |resource_name|
+                Chef::Log.warn "Will create a dynamic recipe for #{resource_name}"
+                Chef::Recipe.new(:choregraphie, "dynamic_resource_for_#{resource_name}", run_context).instance_eval do
+                  setup_hook.call(resource_name, opts)
+                end
+              end
+          end
+        end
+
       else
         #TODO
         raise "Symbol type is not yet supported"

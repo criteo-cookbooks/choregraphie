@@ -19,3 +19,6 @@ end
 describe file('/tmp/log_another_log') do
   it { should be_file }
 end
+describe file('/tmp/log_a_log_defined_after_choregraphie') do
+  it { should be_file }
+end
