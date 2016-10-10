@@ -13,8 +13,10 @@ module Choregraphie
       validate!(:path, String)
       # id of this node
       validate!(:id, String)
-      # max number of node holding the lock
-      @options[:concurrency] ||= 1
+
+      if @options[:concurrency] && @options[:service]
+        raise ArgumentError, "You can't set both concurrency and service"
+      end
 
       @options[:backoff] ||= 5 # seconds
 
@@ -29,9 +31,27 @@ module Choregraphie
       yield if block_given?
     end
 
+    def concurrency
+      @concurrency ||= case
+                       when @options[:service]
+                         require 'diplomat'
+                         total = Diplomat::Service.get(
+                           @options[:service][:name],
+                           :all,
+                           @options[:service][:options] || {}
+                         ).count
+                         # TODO: check only passing instances
+                         (@options[:service][:concurrency_ratio] * total).to_i
+                       when @options[:concurrency]
+                         @options[:concurrency]
+                       else
+                         1
+                       end
+    end
+
     def semaphore
       # this object cannot be reused after enter/exit
-      Semaphore.get_or_create(path, @options[:concurrency])
+      Semaphore.get_or_create(path, concurrency)
     end
 
     def backoff

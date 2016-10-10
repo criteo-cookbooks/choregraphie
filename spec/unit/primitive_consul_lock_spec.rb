@@ -40,4 +40,30 @@ describe Choregraphie::ConsulLock do
       end
     end
   end
+
+  let(:choregraphie_service) do
+    Choregraphie::Choregraphie.new('test') do
+      consul_lock(
+        path: '/chef_lock/test',
+        id: 'my_node',
+        service: {
+          name: 'test-service',
+          concurrency_ratio: 0.5,
+        },
+        backoff: 0
+      )
+    end
+  end
+
+  context 'when the consul_lock service option is set' do
+    it 'must count service instances correctly' do
+      expect(Diplomat::Service).to receive(:get).with('test-service', :all, {}).and_return([1,2,3,4,5,6])
+      lock = double('lock')
+      expect(lock).to receive(:enter).with("my_node").and_return(true)
+
+      expect(Semaphore).to receive(:get_or_create).with('/chef_lock/test', 3).and_return(lock)
+
+      choregraphie_service.before.each { |block| block.call }
+    end
+  end
 end
