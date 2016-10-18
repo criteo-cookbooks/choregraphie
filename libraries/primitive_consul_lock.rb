@@ -41,7 +41,7 @@ module Choregraphie
                            @options[:service][:options] || {}
                          ).count
                          # TODO: check only passing instances
-                         (@options[:service][:concurrency_ratio] * total).to_i
+                         [1,(@options[:service][:concurrency_ratio] * total).to_i].max
                        when @options[:concurrency]
                          @options[:concurrency]
                        else
