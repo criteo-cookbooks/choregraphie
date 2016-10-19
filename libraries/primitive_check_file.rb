@@ -2,7 +2,7 @@ require_relative 'primitive'
 
 module Choregraphie
   class CheckFile < Primitive
-    def initialize(file_path, options)
+    def initialize(file_path, options = {})
       @file_path = file_path
       @period    = options[:period] || 5
     end
