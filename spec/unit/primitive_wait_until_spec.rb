@@ -13,13 +13,7 @@ describe Choregraphie::WaitUntil do
       cmd = double('nothing', run_command: true)
       must_raise = true
       expect(Mixlib::ShellOut).to receive(:new).and_return(cmd)
-      expect(cmd).to receive(:error!).twice do
-        if must_raise
-          must_raise = false
-          raise "Not yet!"
-        end
-        "something"
-      end
+      expect(cmd).to receive(:error?).twice.and_return(true, false)
 
       choregraphie.before.each { |block| block.call }
     end
@@ -41,13 +35,7 @@ describe Choregraphie::WaitUntil do
       allow(Mixlib::ShellOut).to receive(:===).with(shellout).and_return(true)
 
       must_raise = true
-      expect(shellout).to receive(:error!).twice do
-        if must_raise
-          must_raise = false
-          raise "Not yet!"
-        end
-        "something"
-      end
+      expect(shellout).to receive(:error?).twice.and_return(true, false)
       choregraphie.before.each { |block| block.call }
     end
   end
@@ -60,9 +48,10 @@ describe Choregraphie::WaitUntil do
         wait_until period: 0.001 do
           if should_fail
             should_fail = false
-            raise 'Not yet!'
+            false
+          else
+            true
           end
-          true
         end
       end
     end
