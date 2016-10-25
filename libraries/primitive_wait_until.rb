@@ -33,17 +33,23 @@ module Choregraphie
     def wrap_shellout(cmd)
       Proc.new do
         cmd.run_command
-        cmd.error!
-        true
+        !cmd.error?
       end
     end
 
     def register(choregraphie)
       choregraphie.before do
         while true
-          result = (@condition.call == true) rescue false
+          Chef::Log.info "Checking if #{@name} is 'true'"
+          result = begin
+                     @condition.call
+                   rescue => e
+                     Chef::Log.info "wait_until condition raised an exception: #{e.message}"
+                     Chef::Log.info e.backtrace
+                     raise
+                   end
           break if result
-          Chef::Log.info "Waiting for #{@name} to be true"
+          Chef::Log.info "Waiting #{@period}s before retrying"
           sleep(@period)
         end
       end
