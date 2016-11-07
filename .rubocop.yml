@@ -1,6 +1,19 @@
+# Rules defined there are of course debatable.
+# If you want to modify them:
+# - discuss this with sre-core members (r.veznaver for instance)
+# - submit the change in the code_generator
+
+AllCops:
+  TargetRubyVersion: 2.2
+
+# This requires to add a comment inside nearly all file which could be
+# considered as toil without value
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
 ### Disable line length constraint
 Metrics/LineLength:
-  Max: 120
+  Max: 180
 # Because we're not in the 80s anymore.
 # Based on data from http://sideeffect.kr/popularconvention#ruby
 #
@@ -45,3 +58,48 @@ Style/AlignHash:
 #     ccc: 'c',
 #   }
 #
+Metrics/ModuleLength:
+  Max: 20
+# In general, developers should follow the single responsibility principle, but
+# the bbatsov guide's 10-line limit seems rather arbitrary.
+# Based on: https://www.mediawiki.org/wiki/Manual:Coding_conventions/Ruby
+
+Metrics/MethodLength:
+  Max: 40
+
+# This rule generates many false positive
+Style/VariableNumber:
+  Enabled: false
+
+# This metric is hard to grasp but let's avoid delirious code
+Metrics/AbcSize:
+  Max: 60
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: consistent_comma
+
+Metrics/BlockLength:
+  Max: 60
+
+Style/StringLiterals:
+  ConsistentQuotesInMultiline: true
+
+Style/FormatString:
+  EnforcedStyle: percent
+
+# Really practical. Use with moderation though for readability
+Style/MultilineBlockChain:
+  Enabled: false
+
+# We ain't serving subseconds requests. Forcing to use tr instead of gsub will
+# be annoying without much value
+Performance/StringReplacement:
+  Enabled: false
+
+# We don't write documentation there at the moment
+Style/Documentation:
+  Enabled: false
+
+# Filename forces snake case for file names, we just want consistency for now
+Style/FileName:
+  Enabled: false
