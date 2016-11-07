@@ -14,7 +14,10 @@ driver:
   name: ec2
   instance_type: t2.micro
   associate_public_ip: true
+  iam_profile_name: test-kitchen
   region: <%= ENV['AWS_REGION'] || 'us-west-2' %>
+  tags:
+    created-by: <%= ENV['AWS_SSH_KEY_ID'] %>
   subnet_filter:
     tag:   'Name'
     value: <%= ENV['AWS_SUBNET'] || 'chef-testing-opensource-vpc-subnet' %>
@@ -28,7 +31,7 @@ driver:
         delete_on_termination: true
 
 transport:
-  ssh_key: <%= ENV['HOME'] %>/.ssh/id_rsa
+  ssh_key:  <%= ENV['HOME'] %>/.ssh/id_rsa
 
 platforms:
   - name: centos-6
@@ -39,4 +42,8 @@ platforms:
       image_id: ami-d2c924b2
   - name: windows-2012r2
     driver:
-      image_id: ami-df8767bf
+      image_search:
+        name: "Windows_Server-2012-R2_RTM-English-64Bit-Base-*"
+
+suites:
+<%= require 'erubis'; Erubis::Eruby.new(File.read('.kitchen_suites.yml')).evaluate %>

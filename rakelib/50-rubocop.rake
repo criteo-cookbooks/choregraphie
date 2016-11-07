@@ -4,7 +4,18 @@ namespace :rubocop do
   def rubocop_version
     last_version = Mixlib::ShellOut.new('gem list "^rubocop$" --remote')
     last_version.run_command.error!
-    last_version.stdout.gsub(/rubocop \((.*)\)/, '\1').chomp
+    # When gem 'verbose' mode active the output is:
+    # $ gem list "^rubocop$" --remote
+    #
+    # *** REMOTE GEMS ***
+    #
+    # GET https://api.rubygems.org/latest_specs.4.8.gz
+    # 302 Moved Temporarily
+    # GET https://rubygems.global.ssl.fastly.net/latest_specs.4.8.gz
+    # 304 Not Modified
+    # rubocop (0.42.0)
+    #
+    last_version.stdout[/^rubocop \(.*\)/].gsub(/.*\((.*)\)/, '\1').chomp
   end
 
   desc 'Show latest rubocop gem version'
@@ -15,7 +26,7 @@ namespace :rubocop do
   desc 'Constrain rubocop version to latest and update'
   task :force_latest_version do
     v = rubocop_version
-    gemfile = ::File.join(::File.dirname(__FILE__), '..' , 'Gemfile')
+    gemfile = ::File.join(::File.dirname(__FILE__), '..', 'Gemfile')
     content = ::File.read(gemfile).lines.reject { |line| line =~ /gem 'rubocop'/ }.join
     File.open(gemfile, 'w+') do |f|
       f.write(content)

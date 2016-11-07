@@ -4,7 +4,6 @@ driver:
 
 provisioner:
   name: chef_zero
-  require_chef_omnibus: 12.8.1
   attributes:
     authorization:
       sudo:
@@ -34,4 +33,4 @@ platforms:
     box: criteo-windows-2012r2-standard
 
 suites:
-<%= IO.read('.kitchen_suites.yml') %>
+<%= require 'erubis'; Erubis::Eruby.new(File.read('.kitchen_suites.yml')).evaluate %>
