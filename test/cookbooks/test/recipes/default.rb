@@ -4,10 +4,15 @@
 #
 # Copyright (c) 2016 The Authors, All Rights Reserved.
 
+require 'tmpdir'
+dir = Dir.tmpdir()
+
+directory dir
+
 # Need to clean up in case of multiple convergence tests
 execute 'Clean up machine' do
-  command "rm /tmp/not_converging.tmp"
-  only_if "test -f /tmp/not_converging.tmp"
+  command "rm #{::File.join(dir, 'not_converging.tmp')}"
+  only_if "test -f #{::File.join(dir, 'not_converging.tmp')}"
 end
 
 # Using chef provided resource
@@ -24,7 +29,7 @@ end
 test_simple_resource 'converging' do
   content 'test!'
 end
-file '/tmp/not_converging.tmp' do
+file ::File.join(dir, 'not_converging.tmp') do
   content 'not_converging'
 end
 
@@ -56,7 +61,9 @@ choregraphie 'execute' do
     Chef::Log.warn("I am called before! for resource " + resource.to_s)
     filename = resource.to_s.gsub(/\W+/, '_').gsub(/_$/,'')
     require 'fileutils'
-    FileUtils.touch(::File.join('/tmp', filename))
+    require 'tmpdir'
+    dir = Dir.tmpdir()
+    FileUtils.touch(::File.join(dir, filename))
   end
   cleanup do
     Chef::Log.warn('I am called at the end')

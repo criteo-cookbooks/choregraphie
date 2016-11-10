@@ -5,7 +5,8 @@ def whyrun_supported?
 end
 
 action :manage do
-  file ::File.join('/tmp/', new_resource.name + '.tmp') do
+  require 'tmpdir'
+  file ::File.join(Dir.tmpdir(), new_resource.name + '.tmp') do
     content content
   end
 end
