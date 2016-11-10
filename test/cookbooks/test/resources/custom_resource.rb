@@ -6,7 +6,8 @@ resource_name :custom_resource
 provides :custom_resource
 
 action :create do
-  file '/tmp/hi'
+  require 'tmpdir'
+  file ::File.join(Dir.tmpdir(), 'hi')
 end
 
 action_class do
