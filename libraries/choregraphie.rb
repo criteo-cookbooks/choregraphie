@@ -137,17 +137,25 @@ module Choregraphie
           map(&:to_s).select { |resource_name| resource_name =~ event }.
           each { |resource_name| setup_hook(resource_name, opts) }
 
-        setup_hook = method(:setup_hook) # catches setup_hook in the closure
-        Chef.event_handler do
-          on :converge_start do |run_context|
-            run_context.resource_collection.
-              map(&:to_s).select { |resource_name| resource_name =~ event }.
-              each do |resource_name|
-                Chef::Log.warn "Will create a dynamic recipe for #{resource_name}"
-                Chef::Recipe.new(:choregraphie, "dynamic_resource_for_#{resource_name}", run_context).instance_eval do
-                  setup_hook.call(resource_name, opts)
-                end
-              end
+        on_each_resource do |resource, choregraphie|
+          next unless resource.to_s =~ event
+          Chef::Log.warn "Will create a dynamic recipe for #{resource}"
+          Chef::Recipe.new(:choregraphie, "dynamic_resource_for_#{resource.to_s}", run_context).instance_eval do
+            choregraphie.setup_hook(resource.to_s, opts)
+          end
+        end
+      when :weighted_resources
+        # all resources whose weight is non-zero is protected by default
+        weight_threshold = opts[:threshold] || 0
+        on_each_resource do |resource, choregraphie|
+          if resource.class.properties.has_key?(:weight)
+            next if resource.weight <= weight_threshold
+            Chef::Log.warn "Will create a dynamic recipe for #{resource}"
+            Chef::Recipe.new(:choregraphie, "dynamic_resource_for_#{resource.to_s}", run_context).instance_eval do
+              choregraphie.setup_hook(resource.to_s, opts)
+            end
+          else
+            raise "Resource #{resource} does not respond to :weight method. Is resource-weight cookbook loaded?"
           end
         end
 
@@ -156,6 +164,20 @@ module Choregraphie
         raise "Symbol type is not yet supported"
       end
     end
+
+    private
+
+    def on_each_resource
+      myself = self
+      Chef.event_handler do
+        on :converge_start do |run_context|
+          run_context.resource_collection.each do |resource|
+            yield resource, myself
+          end
+        end
+      end
+    end
+
   end
 end
 

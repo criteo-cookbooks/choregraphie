@@ -25,6 +25,8 @@ Example
       # protect against all reboot resources
       on /^reboot\[/
 
+      on :weighted_resources # compatiblity with resource-weight cookbook
+
       # built-in primitive
       consul_lock(path: 'choregraphie/locks/myes', concurrency: 2)
 
