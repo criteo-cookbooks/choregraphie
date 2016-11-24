@@ -47,6 +47,10 @@ custom_resource 'my useless custom resource' do
   only_if { false }
 end
 
+execute 'uname' do
+  weight 2
+end
+
 choregraphie 'execute' do
   on 'execute[converging]'
   on 'execute[not_converging]'
@@ -56,6 +60,8 @@ choregraphie 'execute' do
   on 'custom_resource[my useless custom resource]'
 
   on /^log\[/
+
+  on :weighted_resources
 
   before do |resource|
     Chef::Log.warn("I am called before! for resource " + resource.to_s)

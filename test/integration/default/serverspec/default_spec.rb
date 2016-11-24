@@ -9,6 +9,7 @@ log_a_simple_log
 log_another_log
 log_a_log_defined_after_choregraphie
 custom_resource_my_converging_custom_resource
+execute_uname
 ).each do |path|
   describe file(::File.join(dir, path)) do
     it { should be_file }
