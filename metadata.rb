@@ -6,7 +6,7 @@ description      'Allow to coordinate changes induced by chef'
 long_description 'Installs/Configures choregraphie'
 issues_url       'https://github.com/criteo-cookbooks/choregraphie'
 source_url       'https://github.com/criteo-cookbooks/choregraphie'
-version          '0.6.0'
+version          '0.7.0'
 supports         'centos'
 supports         'windows'
 
