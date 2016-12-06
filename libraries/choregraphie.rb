@@ -150,7 +150,7 @@ module Choregraphie
               choregraphie.setup_hook(resource.to_s, opts)
             end
           else
-            raise "Resource #{resource} does not respond to :weight method. Is resource-weight cookbook loaded?"
+            raise "Resource #{resource} does not respond to :weight method. There is most likely a bug in resource-weihgt cookbook"
           end
         end
 
