@@ -132,11 +132,6 @@ module Choregraphie
 
         setup_hook(resource_name, opts)
       when Regexp
-        # list all resources already defined
-        run_context.resource_collection.
-          map(&:to_s).select { |resource_name| resource_name =~ event }.
-          each { |resource_name| setup_hook(resource_name, opts) }
-
         on_each_resource do |resource, choregraphie|
           next unless resource.to_s =~ event
           Chef::Log.warn "Will create a dynamic recipe for #{resource}"
