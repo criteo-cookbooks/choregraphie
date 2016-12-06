@@ -9,6 +9,10 @@ module Choregraphie
 
     attr_reader :name
 
+    def clean_name
+      name.gsub(/[^a-z]+/, '_')
+    end
+
     def initialize(name, &block)
       @name = name
       @before = []
@@ -50,15 +54,15 @@ module Choregraphie
     end
 
     def cleanup_block_name(resource_name)
-      "Cleanup callbacks for #{@name}/#{resource_name}"
+      "Cleanup callbacks for #{name}/#{resource_name}"
     end
     def before_block_name(resource_name)
-      "Before callbacks for #{@name}/#{resource_name}"
+      "Before callbacks for #{name}/#{resource_name}"
     end
 
     def before(&block)
       if block
-        Chef::Log.debug("Registering a before block for #{@name}")
+        Chef::Log.debug("Registering a before block for #{name}")
         @before << block
       end
       @before
@@ -66,7 +70,7 @@ module Choregraphie
 
     def cleanup(&block)
       if block
-        Chef::Log.debug("Registering an cleanup block for #{@name}")
+        Chef::Log.debug("Registering an cleanup block for #{name}")
         @cleanup << block
       end
       @cleanup
@@ -125,7 +129,7 @@ module Choregraphie
 
     def on(event, opts = {})
       opts = Mash.new(opts)
-      Chef::Log.warn("Registering on #{event} for #{@name}")
+      Chef::Log.warn("Registering on #{event} for #{name}")
       case event
       when String # resource name
         resource_name = event
@@ -135,7 +139,7 @@ module Choregraphie
         on_each_resource do |resource, choregraphie|
           next unless resource.to_s =~ event
           Chef::Log.warn "Will create a dynamic recipe for #{resource}"
-          Chef::Recipe.new(:choregraphie, "dynamic_resource_for_#{resource.to_s}", run_context).instance_eval do
+          Chef::Recipe.new(:choregraphie, "dynamic_resource_for_#{resource.to_s}_#{clean_name}", run_context).instance_eval do
             choregraphie.setup_hook(resource.to_s, opts)
           end
         end
@@ -146,7 +150,7 @@ module Choregraphie
           if resource.class.properties.has_key?(:weight)
             next if resource.weight <= weight_threshold
             Chef::Log.warn "Will create a dynamic recipe for #{resource}"
-            Chef::Recipe.new(:choregraphie, "dynamic_resource_for_#{resource.to_s}", run_context).instance_eval do
+            Chef::Recipe.new(:choregraphie, "dynamic_resource_for_#{resource.to_s}_#{clean_name}", run_context).instance_eval do
               choregraphie.setup_hook(resource.to_s, opts)
             end
           else
