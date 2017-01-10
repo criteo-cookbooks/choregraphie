@@ -31,18 +31,19 @@ module Choregraphie
     end
 
     def wrap_shellout(cmd)
-      Proc.new do
+      Proc.new do |resource_name|
+        cmd.environment['RESOURCE_NAME'] = resource_name
         cmd.run_command
         !cmd.error?
       end
     end
 
     def register(choregraphie)
-      choregraphie.before do
+      choregraphie.before do |resource_name|
         while true
           Chef::Log.info "Checking if #{@name} is 'true'"
           result = begin
-                     @condition.call
+                     @condition.call(resource_name)
                    rescue => e
                      Chef::Log.info "wait_until condition raised an exception: #{e.message}"
                      Chef::Log.info e.backtrace

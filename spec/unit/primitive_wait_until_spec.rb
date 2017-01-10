@@ -2,6 +2,16 @@ require_relative '../../libraries/primitive_wait_until'
 
 describe Choregraphie::WaitUntil do
 
+  let(:environment) do
+    double('env').tap do |dble|
+      expect(dble).to receive(:[]=).with('RESOURCE_NAME', kind_of(String)).at_least(:once)
+    end
+  end
+
+  def mock_env(cmd)
+    expect(cmd).to receive(:environment).and_return(environment).at_least(:once)
+  end
+
   context 'when the condition is a string' do
     let(:choregraphie) do
       Choregraphie::Choregraphie.new('test') do
@@ -13,16 +23,19 @@ describe Choregraphie::WaitUntil do
       cmd = double('nothing', run_command: true)
       must_raise = true
       expect(Mixlib::ShellOut).to receive(:new).and_return(cmd)
+      mock_env(cmd)
       expect(cmd).to receive(:error?).twice.and_return(true, false)
 
-      choregraphie.before.each { |block| block.call }
+      choregraphie.before.each { |block| block.call('a resource name') }
     end
   end
 
   context 'when the condition is a shellout' do
 
     let(:shellout) do
-      double('shellout', run_command: true, cmd: 'some_command')
+      double('shellout', run_command: true, cmd: 'some_command').tap do |dble|
+        mock_env(dble)
+      end
     end
 
     let(:choregraphie) do
@@ -36,7 +49,7 @@ describe Choregraphie::WaitUntil do
 
       must_raise = true
       expect(shellout).to receive(:error?).twice.and_return(true, false)
-      choregraphie.before.each { |block| block.call }
+      choregraphie.before.each { |block| block.call('a resource name') }
     end
   end
 
@@ -57,7 +70,7 @@ describe Choregraphie::WaitUntil do
     end
 
     it 'must wait for the condition to be true' do
-      choregraphie.before.each { |block| block.call }
+      choregraphie.before.each { |block| block.call('a resource name') }
     end
   end
 end
