@@ -59,7 +59,7 @@ Two very basic primitives:
 
 Slightly more advanced primitives:
 * CheckFile: `check_file '/tmp/do_it'` will wait until the given file exists on the filesystem. This file is cleaned after.
-* WaitUntil: `wait_until "ping -c 1 google.com"` will wait until the command exit with a 0 status. This primitives supports string, mixlib/shellout instance and blocks.
+* WaitUntil: `wait_until "ping -c 1 google.com"` will wait until the command exit with a 0 status. This primitives supports string, mixlib/shellout instance and blocks. One can specify to run the wait_until in "before" or "cleanup" stages using the options (see code for details)
 * ConsulLock: `consul_lock {path: '/lock/my_app', id: 'my_node', concurrency: 5}` will grab a lock from consul and release it afterwards. This primitive is based on optimistic concurrency rather than consul sessions.
 * ConsulMaintenance: `consul_maintenance reason: 'My reason'` will enable
   maintenance mode on the consul agent before the choregraphie starts.
