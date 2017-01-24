@@ -13,6 +13,7 @@ module Choregraphie
       options = Mash.new(args.shift || {})
       @period = options['period'] || 5
       @name   = options['name']
+      @when   = options['when'] || 'before'
       # Store the condition as a block
       case condition
       when Mixlib::ShellOut
@@ -39,7 +40,15 @@ module Choregraphie
     end
 
     def register(choregraphie)
-      choregraphie.before do |resource_name|
+      case @when
+      when 'before'
+        method = :before
+      when 'cleanup'
+        method = :cleanup
+      else
+        raise "Incorrect value <#{@when}> for 'when' option in wait_until"
+      end
+      choregraphie.send(method) do |resource_name|
         while true
           Chef::Log.info "Checking if #{@name} is 'true'"
           result = begin
