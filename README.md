@@ -55,12 +55,13 @@ Two very basic primitives:
 
 * Before: `before { ... }` will execute code before protected resources are converged. The block will receive the converged resource as argument.
 * Cleanup: `cleanup { ... }` will execute code at the end of a successful chef-client run. The cleanup block will be executed at *each* chef-client run. This code should thus be efficient and safe to run at the end of all chef-client runs (for instance cleaning a file only if it exists).
+* Finish: `finish { ... }` wil execute code after cleanup stage. There can be only one finish block.
 
 
 Slightly more advanced primitives:
 * CheckFile: `check_file '/tmp/do_it'` will wait until the given file exists on the filesystem. This file is cleaned after.
 * WaitUntil: `wait_until "ping -c 1 google.com"` will wait until the command exit with a 0 status. This primitives supports string, mixlib/shellout instance and blocks. One can specify to run the wait_until in "before" or "cleanup" stages using the options (see code for details)
-* ConsulLock: `consul_lock {path: '/lock/my_app', id: 'my_node', concurrency: 5}` will grab a lock from consul and release it afterwards. This primitive is based on optimistic concurrency rather than consul sessions.
+* ConsulLock: `consul_lock {path: '/lock/my_app', id: 'my_node', concurrency: 5}` will grab a lock from consul and release it afterwards. This primitive is based on optimistic concurrency rather than consul sessions. It uses `finish` block to release the lock ensuring that the lock release happens after all cleanup blocks.
 * ConsulMaintenance: `consul_maintenance reason: 'My reason'` will enable
   maintenance mode on the consul agent before the choregraphie starts.
 

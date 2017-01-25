@@ -14,6 +14,9 @@ execute_uname
   describe file(::File.join(dir, path)) do
     it { should be_file }
   end
+  describe file(::File.join(dir, 'cleanup')) do
+    its(:content) { should match /\nfinish$/}
+  end
 end
 
 %w(

@@ -1,6 +1,7 @@
 require_relative '../../libraries/primitive_consul_lock'
 require 'webmock/rspec'
 require 'base64'
+require 'diplomat'
 
 describe Choregraphie::ConsulLock do
   let(:choregraphie) do
@@ -36,7 +37,7 @@ describe Choregraphie::ConsulLock do
 
         expect(Semaphore).to receive(:get_or_create).and_return(*([failing_lock] * fails + [lock]))
 
-        choregraphie.cleanup.each { |block| block.call }
+        choregraphie.finish.each { |block| block.call }
       end
     end
   end

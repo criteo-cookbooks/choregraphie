@@ -86,7 +86,7 @@ module Choregraphie
         wait_until(:enter) { semaphore.enter(@options[:id]) }
       end
 
-      choregraphie.cleanup do
+      choregraphie.finish do
         # hack: We can ignore failure there since it is only to release
         # the lock. If there is a temporary failure, we can wait for the
         # next run to release the lock without compromising safety.

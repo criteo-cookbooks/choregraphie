@@ -16,7 +16,8 @@ module Choregraphie
     def initialize(name, &block)
       @name = name
       @before = []
-      @cleanup= []
+      @cleanup = []
+      @finish = []
 
       # read all available primitives and make them available with a method
       # using their name. It allows to call `check_file '/tmp/titi'` to
@@ -32,6 +33,7 @@ module Choregraphie
 
       # bind cleanup in local context to access it in event_handler
       cleanup_events = cleanup
+      finish_events = finish
 
       Chef.event_handler do
         # Using converge_complete instead of run_completed bk reboot
@@ -40,6 +42,7 @@ module Choregraphie
         on :converge_complete do
           Chef::Log.debug "Chef-client convergence successful, will clean up all primitives"
           cleanup_events.each { |b| b.call }
+          finish_events.each { |b| b.call }
         end
       end
 
@@ -59,6 +62,9 @@ module Choregraphie
     def before_block_name(resource_name)
       "Before callbacks for #{name}/#{resource_name}"
     end
+    def finish_block_name(resource_name)
+      "Terminate callbacks for #{name}/#{resource_name}"
+    end
 
     def before(&block)
       if block
@@ -74,6 +80,15 @@ module Choregraphie
         @cleanup << block
       end
       @cleanup
+    end
+
+    def finish(&block)
+      if block
+        Chef::Log.debug("Registering a finish block for #{name}")
+        raise " A finish block already regitered" unless @finish.empty?
+        @finish << block
+      end
+      @finish
     end
 
     # Ensure resource exists and its provider supports whyrun
