@@ -2,7 +2,9 @@ require_relative 'primitive'
 require 'mixlib/shellout'
 
 # This primitive takes a block, a mixlib::shellout or a command (as a string)
-# it will execute the command/block/shellout until it returns true (exits with 0 for commands). Any other value or StandardException will be interpretation as a failure of the condition
+# it will execute the command/block/shellout until it returns true (exits with
+# 0 for commands). Any other value or StandardException will be interpretation
+# as a failure of the condition
 module Choregraphie
   class WaitUntil < Primitive
     # Two ways to create this primitive:
@@ -32,7 +34,7 @@ module Choregraphie
     end
 
     def wrap_shellout(cmd)
-      Proc.new do |resource_name|
+      proc do |resource_name|
         cmd.environment['RESOURCE_NAME'] = resource_name
         cmd.run_command
         !cmd.error?
@@ -40,16 +42,11 @@ module Choregraphie
     end
 
     def register(choregraphie)
-      case @when
-      when 'before'
-        method = :before
-      when 'cleanup'
-        method = :cleanup
-      else
+      unless %w(before cleanup).include?(@when.to_s)
         raise "Incorrect value <#{@when}> for 'when' option in wait_until"
       end
-      choregraphie.send(method) do |resource_name|
-        while true
+      choregraphie.send(@when.to_sym) do |resource_name|
+        loop do
           Chef::Log.info "Checking if #{@name} is 'true'"
           result = begin
                      @condition.call(resource_name)
