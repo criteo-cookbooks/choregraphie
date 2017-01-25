@@ -66,14 +66,18 @@ choregraphie 'execute' do
   before do |resource|
     Chef::Log.warn("I am called before! for resource " + resource.to_s)
     filename = resource.to_s.gsub(/\W+/, '_').gsub(/_$/,'')
-    require 'fileutils'
-    require 'tmpdir'
-    dir = Dir.tmpdir()
-    FileUtils.touch(::File.join(dir, filename))
+    File.open(::File.join(dir, filename), 'a') { |file| file.write("before\n") }
   end
-  cleanup do
-    Chef::Log.warn('I am called at the end')
+  cleanup do |resource|
+    Chef::Log.warn('I am called at cleanup for cleanup block')
+    text = resource.to_s.gsub(/\W+/, '_').gsub(/_$/,'')
+    File.open(::File.join(dir, 'cleanup'), 'a') { |file| file.write("#{text}\n") }
   end
+  finish do
+    Chef::Log.warn('I am called at finish block')
+    File.open(::File.join(dir, 'cleanup'), 'a') { |file| file.write("finish") }
+  end
+
 end
 
 log "a_log_defined_after_choregraphie"
