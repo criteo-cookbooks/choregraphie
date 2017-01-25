@@ -21,5 +21,5 @@ before_deploy:
 - openssl aes-256-cbc -K $encrypted_144c35c6f3c3_key -iv $encrypted_144c35c6f3c3_iv
   -in .travis/client.pem.enc -out .travis/client.pem -d
 before_install:
-- openssl aes-256-cbc -K $encrypted_40daeb36df73_key -iv $encrypted_40daeb36df73_iv
-  -in .travis/travis-ci.pem.enc -out ~/.ssh/id_rsa -d
+- 'if [ -n "$encrypted_40daeb36df73_iv" ]; then openssl aes-256-cbc -K $encrypted_40daeb36df73_key -iv $encrypted_40daeb36df73_iv
+  -in .travis/travis-ci.pem.enc -out ~/.ssh/id_rsa -d; fi'
