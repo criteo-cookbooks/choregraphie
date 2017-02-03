@@ -8,17 +8,9 @@ describe Choregraphie::ConsulHealthCheck do
       consul_health_check(
         checkids: ['service:ping'],
         tries:    3,
-        delay:    1,
+        delay:    0.1,
       )
     end
-  end
-
-  let(:health_check) do
-    Choregraphie::ConsulHealthCheck.new(
-      checkids: ['service:ping'],
-      tries:    3,
-      delay:    1,
-    )
   end
 
   context 'when the healthcheck is not passing after n times' do
@@ -50,9 +42,9 @@ describe Choregraphie::ConsulHealthCheck do
               Name:    "Service 'ping' check",
               Status:  'passing',
             },
-            status: 200,
-          },
-        )
+          }.to_json,
+          status: 200,
+      )
 
       choregraphie.cleanup.each(&:call)
     end
