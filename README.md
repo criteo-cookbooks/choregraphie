@@ -62,6 +62,7 @@ Slightly more advanced primitives:
 * CheckFile: `check_file '/tmp/do_it'` will wait until the given file exists on the filesystem. This file is cleaned after.
 * WaitUntil: `wait_until "ping -c 1 google.com"` will wait until the command exit with a 0 status. This primitives supports string, mixlib/shellout instance and blocks. One can specify to run the wait_until in "before" or "cleanup" stages using the options (see code for details)
 * ConsulLock: `consul_lock {path: '/lock/my_app', id: 'my_node', concurrency: 5}` will grab a lock from consul and release it afterwards. This primitive is based on optimistic concurrency rather than consul sessions. It uses `finish` block to release the lock ensuring that the lock release happens after all cleanup blocks.
+* ConsulHEalthCheck: `consul_health_check {checkids: ['service:ping', 'service:mysql'], delay: 10, tries: 5}` will wait for the checks `service:ping` and `service:mysql` to be green in consul without letting the chef run finish. It will try 5 times, with a 10 second delay between each try.
 * ConsulMaintenance: `consul_maintenance reason: 'My reason'` will enable
   maintenance mode on the consul agent before the choregraphie starts.
 * ConsulHealth: `consul_health(checkids: %w(consul-http-agent myhealthcheck))` will block until consul health check is passing. By default it will wait for 150s before failing the chef run.
