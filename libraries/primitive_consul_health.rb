@@ -11,7 +11,7 @@ module Choregraphie
       @options[:delay] ||= 15
 
       raise ArgumentError, 'Missing checkids option' unless @options[:checkids]
-      raise ArgumentError, 'Empty checkids option' unless @options[:checkids].empty?
+      raise ArgumentError, 'Empty checkids option' if @options[:checkids].empty?
 
       if @options[:consul_token]
         require 'diplomat'
