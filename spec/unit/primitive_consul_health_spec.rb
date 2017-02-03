@@ -34,7 +34,7 @@ describe Choregraphie::ConsulHealthCheck do
 
   context 'when the healthcheck is passing ' do
     it 'must count service instances correctly' do
-      stub_request(:get, 'http://localhost:8500/v1/agent/checks')
+      stub_request(:get, 'http://localhost:8500/v1/agent/checks').to_timeout.to_timeout
         .to_return(
           body: {
             'service:ping' => {

@@ -27,7 +27,15 @@ module Choregraphie
       require 'diplomat'
       tries.times do |try|
         Kernel.sleep @options[:delay]
-        checks = Diplomat::Check.checks
+        begin
+          # We wrap this inside a begin..rescue block
+          # so that any consul failure would not instantly
+          # result in an exception
+          checks = Diplomat::Check.checks
+        rescue => e
+          Chef::Log.error "Could not get checks from Consul: #{e}"
+          next
+        end
 
         non_passing = @options[:checkids]
           .select { |id| checks[id]['CheckID'] }
