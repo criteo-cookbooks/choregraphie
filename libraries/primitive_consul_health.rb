@@ -1,5 +1,6 @@
 require_relative 'primitive'
 require 'chef/mash'
+require 'chef/application'
 
 module Choregraphie
   class ConsulHealthCheck < Primitive
@@ -8,6 +9,9 @@ module Choregraphie
 
       @options[:tries] ||= 10
       @options[:delay] ||= 15
+
+      raise ArgumentError, 'Missing checkids option' unless @options[:checkids]
+      raise ArgumentError, 'Empty checkids option' unless @options[:checkids].empty?
 
       if @options[:consul_token]
         require 'diplomat'
@@ -22,7 +26,7 @@ module Choregraphie
     def are_checks_passing?(tries)
       require 'diplomat'
       tries.times do |try|
-        Kernel::sleep @options[:delay]
+        Kernel.sleep @options[:delay]
         checks = Diplomat::Check.checks
 
         non_passing = @options[:checkids]
@@ -32,14 +36,14 @@ module Choregraphie
 
         return true if non_passing.empty?
 
-        Chef::Log.warn "Some checks did not pass, will retry #{tries-try} more times"
+        Chef::Log.warn "Some checks did not pass, will retry #{tries - try} more times"
       end
       false
     end
 
     def register(choregraphie)
       choregraphie.cleanup do
-        Chef::Application.fatal!("Failed to pass Consul checks") unless are_checks_passing? @options[:tries]
+        raise 'Failed to pass Consul checks' unless are_checks_passing? @options[:tries]
       end
     end
   end
