@@ -64,7 +64,7 @@ Slightly more advanced primitives:
 * ConsulLock: `consul_lock {path: '/lock/my_app', id: 'my_node', concurrency: 5}` will grab a lock from consul and release it afterwards. This primitive is based on optimistic concurrency rather than consul sessions. It uses `finish` block to release the lock ensuring that the lock release happens after all cleanup blocks.
 * ConsulMaintenance: `consul_maintenance reason: 'My reason'` will enable
   maintenance mode on the consul agent before the choregraphie starts.
-* ConsulHealthCheck: `consul_health_check(checkids: %w(consul-http-agent myhealthcheck))` will block until consul health check is passing. By default it will wait for 150s before failing the chef run.
+* ConsulHealthCheck: `consul_health_check(checkids: %w(service:consul-http-agent service:myhealthcheck))` will block until consul health check is passing. By default it will wait for 150s before failing the chef run. ids for checkids are the composition of the check type  and the id of the check (For ex. for service check myhealthcheck, id is service:myhealthcheck`)
 
 
 Missing Primitives
