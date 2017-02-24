@@ -15,7 +15,7 @@ describe Choregraphie::Semaphore do
   end
 
   let(:value) {
-    Base64.encode64({version: 1, concurrency: 2, holders: {another_node: 12345 }}.to_json).gsub(/\n/, '')
+    Base64.encode64({version: 1, holders: {another_node:  { 'ts': 12345, 'concurrency': 2 } }}.to_json).gsub(/\n/, '')
   }
 
   let(:existing_response) {
@@ -33,7 +33,7 @@ describe Choregraphie::Semaphore do
         stub_request(:get, "http://localhost:8500/v1/kv/check-lock/my_lock").
           to_return(existing_response)
 
-        expect(Semaphore.get_or_create('/check-lock/my_lock', 2)).to be_a(Semaphore)
+        expect(Semaphore.get_or_create('/check-lock/my_lock')).to be_a(Semaphore)
       end
     end
 
@@ -43,23 +43,23 @@ describe Choregraphie::Semaphore do
           to_return([{status: 404}, existing_response])
 
         stub_request(:put, "http://localhost:8500/v1/kv/check-lock/my_lock?cas=0").
-          with(:body => "{\"version\":1,\"concurrency\":2,\"holders\":{}}").
+          with(:body => "{\"version\":1,\"holders\":{}}").
           to_return( status: 200, body: "true")
 
-        expect(Semaphore.get_or_create('/check-lock/my_lock', 2)).to be_a(Semaphore)
+        expect(Semaphore.get_or_create('/check-lock/my_lock')).to be_a(Semaphore)
       end
     end
   end
 
   let(:lock) do
-    value = {version: 1, concurrency: 5, holders: {another_node: 12345 }}.to_json
+    value = {version: 1, holders: {another_node: { 'ts': 12345, 'concurrency': 5 }}}.to_json
     Semaphore.new(
       '/check-lock/my_lock',
       { 'Value' => value, 'ModifyIndex' => 42 }
     )
   end
   let(:full_lock) do
-    value = {version: 1, concurrency: 1, holders: {another_node: 12345 }}.to_json
+    value = {version: 1, holders: {another_node: { 'ts': 12345, 'concurrency': 1 }}}.to_json
     Semaphore.new(
       '/check-lock/my_lock',
       { 'Value' => value, 'ModifyIndex' => 42 }
@@ -70,37 +70,37 @@ describe Choregraphie::Semaphore do
     context 'when lock is not full' do
       it 'can enter the lock' do
         stub_request(:put, "http://localhost:8500/v1/kv/check-lock/my_lock?cas=42").
-          with(:body => /"holders":{"another_node":12345,"myself":".*"}/).
+          with(:body => /"holders":{"another_node":{"ts":12345,"concurrency":5},"myself":{.*}/).
           to_return(status: 200, body: "true")
 
-        expect(lock.enter('myself')).to be true
+        expect(lock.enter('myself', 5)).to be true
       end
 
       it 'cannot enter the lock if it has been modified' do
         stub_request(:put, "http://localhost:8500/v1/kv/check-lock/my_lock?cas=42").
-          with(:body => /"holders":{"another_node":12345,"myself":".*"}/).
+          with(:body => /"holders":{"another_node":{"ts":12345,"concurrency":5},"myself":{.*}/).
           to_return(status: 200, body: "false")
-        expect(lock.enter('myself')).to be false
+        expect(lock.enter('myself', 5)).to be false
       end
 
       it 'updates concurrency' do
         stub_request(:put, "http://localhost:8500/v1/kv/check-lock/my_lock?cas=42").
-          with(:body => /"concurrency":5,.*"holders":{"another_node":12345,"myself":".*"}/).
+          with(:body => /.*"holders":{"another_node":{"ts":12345,"concurrency":5},"myself":{.*}/).
           to_return(status: 200, body: "true")
 
-        expect(lock.enter('myself')).to be true
+        expect(lock.enter('myself', 5)).to be true
       end
     end
 
     context 'when lock is full' do
       it 'cannot take the lock' do
-        expect(full_lock.enter('myself')).to be false
+        expect(full_lock.enter('myself', 1)).to be false
       end
     end
 
     context 'when lock is already taken' do
       it 'is re-entrant' do
-        expect(full_lock.enter('another_node')).to be true
+        expect(full_lock.enter('another_node', 1)).to be true
       end
     end
   end
@@ -108,7 +108,7 @@ describe Choregraphie::Semaphore do
   describe '.exit' do
     it 'return true if it can exit the lock' do
       stub_request(:put, "http://localhost:8500/v1/kv/check-lock/my_lock?cas=42").
-        with(body: /{"version":1,"concurrency":5,"holders":{}}/).
+        with(body: /{"version":1,"holders":{}}/).
         to_return(status: 200, body: "true")
 
       expect(lock.exit('another_node')).to be true
@@ -116,7 +116,7 @@ describe Choregraphie::Semaphore do
 
     it 'return false if it can\'t exit the lock' do
       stub_request(:put, "http://localhost:8500/v1/kv/check-lock/my_lock?cas=42").
-        with(body: /{"version":1,"concurrency":5,"holders":{}}/).
+        with(body: /{"version":1,"holders":{}}/).
         to_return(status: 200, body: "false")
 
       expect(lock.exit('another_node')).to be false
