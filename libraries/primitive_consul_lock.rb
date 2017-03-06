@@ -1,4 +1,5 @@
 require_relative 'primitive'
+require 'diplomat'
 require 'chef/mash'
 require 'json'
 
@@ -49,9 +50,13 @@ module Choregraphie
                        end
     end
 
+    def semaphore_class
+      Semaphore
+    end
+
     def semaphore
       # this object cannot be reused after enter/exit
-      Semaphore.get_or_create(path, concurrency)
+      semaphore_class.get_or_create(path, concurrency)
     end
 
     def backoff
@@ -125,7 +130,7 @@ module Choregraphie
                        (retry_left -= 1) > 0 ? retry : raise
                      end.first
       desired_lock = bootstrap_lock(value, current_lock)
-      Semaphore.new(path, desired_lock)
+      self.new(path, desired_lock)
     end
 
     def self.bootstrap_lock(desired_value, current_lock)
