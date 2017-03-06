@@ -1,5 +1,4 @@
 require_relative 'primitive'
-require 'diplomat'
 require 'chef/mash'
 require 'json'
 
@@ -166,6 +165,7 @@ module Choregraphie
       return true if already_entered?(opts)
       if can_enter_lock?(opts)
         enter_lock(opts)
+        require 'diplomat'
         result = Diplomat::Kv.put(@path, to_json, cas: @cas)
         Chef::Log.debug("Someone updated the lock at the same time, will retry") unless result
         result
@@ -183,6 +183,7 @@ module Choregraphie
     def exit(opts)
       if already_entered?(opts)
         exit_lock(opts)
+        require 'diplomat'
         result = Diplomat::Kv.put(@path, to_json, cas: @cas)
         Chef::Log.debug("Someone updated the lock at the same time, will retry") unless result
         result
