@@ -83,7 +83,7 @@ module Choregraphie
     def register(choregraphie)
 
       choregraphie.before do
-        wait_until(:enter) { semaphore.enter(@options[:id]) }
+        wait_until(:enter) { semaphore.enter(name: @options[:id]) }
       end
 
       choregraphie.finish do
@@ -93,7 +93,7 @@ module Choregraphie
         # The reason we have to be a bit more relaxed here, is that all
         # chef run including a choregraphie with this primitive try to
         # release the lock at the end of a successful run
-        wait_until(:exit, max_failures: 5) { semaphore.exit(@options[:id]) }
+        wait_until(:exit, max_failures: 5) { semaphore.exit(name: @options[:id]) }
       end
     end
 
@@ -143,10 +143,24 @@ module Choregraphie
       @cas  = new_lock['ModifyIndex']
     end
 
-    def enter(name)
-      return true if holders.has_key?(name.to_s) # lock is re-entrant
-      if holders.size < concurrency
-        holders[name.to_s] ||= Time.now
+    def already_entered?(opts)
+      name = opts[:name] # this is the server id
+      holders.has_key?(name.to_s) # lock is re-entrant
+    end
+
+    def can_enter_lock?(opts)
+      holders.size < concurrency
+    end
+
+    def enter_lock(opts)
+      name = opts[:name] # this is the server id
+      holders[name.to_s] ||= Time.now
+    end
+
+    def enter(opts)
+      return true if already_entered?(opts)
+      if can_enter_lock?(opts)
+        enter_lock(opts)
         result = Diplomat::Kv.put(@path, to_json, cas: @cas)
         Chef::Log.debug("Someone updated the lock at the same time, will retry") unless result
         result
@@ -156,8 +170,14 @@ module Choregraphie
       end
     end
 
-    def exit(name)
-      if holders.delete(name.to_s)
+    def exit_lock(opts)
+      name = opts[:name] # this is the server id
+      holders.delete(name.to_s)
+    end
+
+    def exit(opts)
+      if already_entered?(opts)
+        exit_lock(opts)
         result = Diplomat::Kv.put(@path, to_json, cas: @cas)
         Chef::Log.debug("Someone updated the lock at the same time, will retry") unless result
         result
