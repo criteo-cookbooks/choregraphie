@@ -129,7 +129,7 @@ module Choregraphie
                        (retry_left -= 1) > 0 ? retry : raise
                      end.first
       desired_lock = bootstrap_lock(value, current_lock)
-      self.new(path, desired_lock)
+      new(path, desired_lock)
     end
 
     def self.bootstrap_lock(desired_value, current_lock)

@@ -7,20 +7,14 @@ module Choregraphie
   # Note: this lock does not guarantee that all nodes of a given rack will be done at the same time.
   class ConsulRackLock < ConsulLock
     def initialize(options = {}, &block)
-      super(options) # don't pass the block since we'll call it later
-      # id of the rack
-      validate!(:rack, String)
+      @options = Mash.new(options)
+      validate!(:rack, String) # id of the rack
+      raise ArgumentError, '`service` option is not supported for consul_rack_lock' if @options[:service]
 
-      if @options[:service]
-        raise ArgumentError, "`service` option is not supported for consul_rack_lock"
-      end
-
-      # this block could be used to configure diplomat if needed
-      yield if block_given?
+      super
     end
 
     def register(choregraphie)
-
       choregraphie.before do
         wait_until(:enter) { semaphore.enter(name: @options[:rack], server: @options[:id]) }
       end
