@@ -28,7 +28,8 @@ Example
       on :weighted_resources # compatiblity with resource-weight cookbook
 
       # built-in primitive
-      consul_lock(path: 'choregraphie/locks/myes', concurrency: 2)
+      consul_lock(path: 'choregraphie/locks/myes', id: node.name, concurrency: 2) # Lock by nodes
+      #consul_lock(path: 'choregraphie/locks/myes', id: node.name, concurrency: 2, by_rack: true, options: {rack: 'rack101'}) # Lock by racks
 
       before do
         # roll your own code
@@ -61,7 +62,7 @@ Two very basic primitives:
 Slightly more advanced primitives:
 * CheckFile: `check_file '/tmp/do_it'` will wait until the given file exists on the filesystem. This file is cleaned after.
 * WaitUntil: `wait_until "ping -c 1 google.com"` will wait until the command exit with a 0 status. This primitives supports string, mixlib/shellout instance and blocks. One can specify to run the wait_until in "before" or "cleanup" stages using the options (see code for details)
-* ConsulLock: `consul_lock {path: '/lock/my_app', id: 'my_node', concurrency: 5}` will grab a lock from consul and release it afterwards. This primitive is based on optimistic concurrency rather than consul sessions. It uses `finish` block to release the lock ensuring that the lock release happens after all cleanup blocks.
+* ConsulLock: `consul_lock {path: '/lock/my_app', id: 'my_node', concurrency: 5}` will grab a lock from consul and release it afterwards. This primitive is based on optimistic concurrency rather than consul sessions. It uses `finish` block to release the lock ensuring that the lock release happens after all cleanup blocks. Lock concurrency is by default based on number of nodes. It can be changed to number of rack setting the field `by_rack` to true and adding the field `rack` to an `options Hash`
 * ConsulMaintenance: `consul_maintenance reason: 'My reason'` will enable
   maintenance mode on the consul agent before the choregraphie starts.
 * ConsulHealthCheck: `consul_health_check(checkids: %w(service:consul-http-agent service:myhealthcheck))` will block until consul health check is passing. By default it will wait for 150s before failing the chef run. ids for checkids are the composition of the check type  and the id of the check (For ex. for service check myhealthcheck, id is service:myhealthcheck`)

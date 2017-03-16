@@ -10,15 +10,23 @@ module Choregraphie
       @options = Mash.new(options)
 
       # path in consul (name_of_the_lock)
-      validate!(:path, String)
+      validate!(@options, :path, String)
       # id of this node
-      validate!(:id, String)
+      validate!(@options, :id, String)
 
       if @options[:concurrency] && @options[:service]
         raise ArgumentError, "You can't set both concurrency and service"
       end
 
       @options[:backoff] ||= 5 # seconds
+
+      @options[:by_rack] ||= false
+
+      @options[:options] ||= Mash.new()
+
+      validate!(@options, :options, Mash)
+
+      validate!(@options[:options], :rack, String) if @options[:by_rack]
 
       if @options[:consul_token]
         require 'diplomat'
@@ -51,7 +59,7 @@ module Choregraphie
 
     def semaphore
       # this object cannot be reused after enter/exit
-      Semaphore.get_or_create(path, concurrency)
+      @options[:by_rack] ? SemaphoreRack.get_or_create(path) : SemaphoreNode.get_or_create(path)
     end
 
     def backoff
@@ -68,6 +76,7 @@ module Choregraphie
         rescue => e
           Chef::Log.warn "Error while #{action}-ing lock"
           Chef::Log.warn e
+          Chef::Log.warn e.backtrace
           backoff
         end
       end
@@ -83,7 +92,7 @@ module Choregraphie
     def register(choregraphie)
 
       choregraphie.before do
-        wait_until(:enter) { semaphore.enter(@options[:id]) }
+        wait_until(:enter) { semaphore.enter(@options[:id], concurrency, @options[:options]) }
       end
 
       choregraphie.finish do
@@ -103,19 +112,19 @@ module Choregraphie
       @options[:path]
     end
 
-    def validate!(name, klass)
-      raise ArgumentError, "Missing #{name}" unless @options.has_key?(name)
-      raise ArgumentError, "Invalid #{name} (must be a #{klass})" unless @options[name].is_a?(klass)
+    def validate!(hash, name, klass)
+      raise ArgumentError, "Missing #{name}" unless hash.has_key?(name)
+      raise ArgumentError, "Invalid #{name} (must be a #{klass})" unless hash[name].is_a?(klass)
     end
 
   end
 
   class Semaphore
 
-    def self.get_or_create(path, concurrency)
+    def self.get_or_create(path)
       require 'diplomat'
       retry_left = 5
-      value =  Mash.new({ version: 1, concurrency: concurrency, holders: {} })
+      value =  Mash.new({ version: 1, holders: {} })
       current_lock = begin
                        Chef::Log.info "Fetch lock state for #{path}"
                        Diplomat::Kv.get(path, decode_values: true)
@@ -124,8 +133,7 @@ module Choregraphie
                        Diplomat::Kv.put(path, value.to_json, cas: 0) # we ignore success/failure of CaS
                        (retry_left -= 1) > 0 ? retry : raise
                      end.first
-      desired_lock = bootstrap_lock(value, current_lock)
-      Semaphore.new(path, desired_lock)
+      @desired_lock = bootstrap_lock(value, current_lock)
     end
 
     def self.bootstrap_lock(desired_value, current_lock)
@@ -143,17 +151,8 @@ module Choregraphie
       @cas  = new_lock['ModifyIndex']
     end
 
-    def enter(name)
-      return true if holders.has_key?(name.to_s) # lock is re-entrant
-      if holders.size < concurrency
-        holders[name.to_s] ||= Time.now
-        result = Diplomat::Kv.put(@path, to_json, cas: @cas)
-        Chef::Log.debug("Someone updated the lock at the same time, will retry") unless result
-        result
-      else
-        Chef::Log.debug("Too many lock holders (concurrency:#{concurrency})")
-        false
-      end
+    def enter(name, concurrency, options)
+      raise NotImplementedError
     end
 
     def exit(name)
@@ -172,12 +171,60 @@ module Choregraphie
       @h.to_json
     end
 
-    def concurrency
-      @h['concurrency']
-    end
-
     def holders
       @h['holders']
+    end
+  end
+
+  class SemaphoreNode < Semaphore
+    def self.get_or_create(path)
+      super(path)
+      SemaphoreNode.new(path, @desired_lock)
+    end
+
+    def enter(name, concurrency, options)
+     return true if holders.has_key?(name.to_s) # lock is re-entrant
+
+     if holders.size < concurrency
+       holders[name.to_s] ||= { 'ts' => Time.now,
+                                'concurrency' => concurrency }
+       result = Diplomat::Kv.put(@path, to_json, cas: @cas)
+       Chef::Log.debug("Someone updated the lock at the same time, will retry") unless result
+       result
+     else
+       Chef::Log.debug("Too many lock holders (concurrency:#{concurrency})")
+       false
+     end
+    end
+  end
+
+  class SemaphoreRack < Semaphore
+    def self.get_or_create(path)
+      super(path)
+      SemaphoreRack.new(path, @desired_lock)
+    end
+
+    def get_rack_list()
+      holders.map{ |node, value| value['rack'] }.uniq
+    end
+
+    def enter(name, concurrency, options)
+      return true if holders.has_key?(name.to_s) # lock is re-entrant
+
+      listOfRack = get_rack_list
+
+      if listOfRack.size < concurrency or listOfRack.include?(options['rack'].to_s)
+        holders[name.to_s] = holders.has_key?(name.to_s) ? holders[name.to_s] : { 'ts' => Time.now,
+                                                                                  'rack' => options['rack'].to_s,
+                                                                                  'concurrency' => concurrency}
+
+        result = Diplomat::Kv.put(@path, to_json, cas: @cas)
+        Chef::Log.debug("Someone updated the lock at the same time, will retry") unless result
+        result
+      else
+        Chef::Log.debug("Too many lock holders (concurrency:#{concurrency})")
+        false
+      end
     end
   end
 end
