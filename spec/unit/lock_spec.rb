@@ -73,14 +73,14 @@ describe Choregraphie::Semaphore do
           with(:body => /"holders":{"another_node":12345,"myself":".*"}/).
           to_return(status: 200, body: "true")
 
-        expect(lock.enter('myself')).to be true
+        expect(lock.enter(name: 'myself')).to be true
       end
 
       it 'cannot enter the lock if it has been modified' do
         stub_request(:put, "http://localhost:8500/v1/kv/check-lock/my_lock?cas=42").
           with(:body => /"holders":{"another_node":12345,"myself":".*"}/).
           to_return(status: 200, body: "false")
-        expect(lock.enter('myself')).to be false
+        expect(lock.enter(name: 'myself')).to be false
       end
 
       it 'updates concurrency' do
@@ -88,19 +88,19 @@ describe Choregraphie::Semaphore do
           with(:body => /"concurrency":5,.*"holders":{"another_node":12345,"myself":".*"}/).
           to_return(status: 200, body: "true")
 
-        expect(lock.enter('myself')).to be true
+        expect(lock.enter(name: 'myself')).to be true
       end
     end
 
     context 'when lock is full' do
       it 'cannot take the lock' do
-        expect(full_lock.enter('myself')).to be false
+        expect(full_lock.enter(name: 'myself')).to be false
       end
     end
 
     context 'when lock is already taken' do
       it 'is re-entrant' do
-        expect(full_lock.enter('another_node')).to be true
+        expect(full_lock.enter(name: 'another_node')).to be true
       end
     end
   end
@@ -111,7 +111,7 @@ describe Choregraphie::Semaphore do
         with(body: /{"version":1,"concurrency":5,"holders":{}}/).
         to_return(status: 200, body: "true")
 
-      expect(lock.exit('another_node')).to be true
+      expect(lock.exit(name: 'another_node')).to be true
     end
 
     it 'return false if it can\'t exit the lock' do
@@ -119,7 +119,7 @@ describe Choregraphie::Semaphore do
         with(body: /{"version":1,"concurrency":5,"holders":{}}/).
         to_return(status: 200, body: "false")
 
-      expect(lock.exit('another_node')).to be false
+      expect(lock.exit(name: 'another_node')).to be false
     end
   end
 end

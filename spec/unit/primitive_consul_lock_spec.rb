@@ -19,10 +19,10 @@ describe Choregraphie::ConsulLock do
     context ctxt do
       it 'must enter the lock' do
         failing_lock = double('failing_lock')
-        expect(failing_lock).to receive(:enter).with("my_node").exactly(fails).times.and_return(false) if fails > 0
+        expect(failing_lock).to receive(:enter).with(name: "my_node").exactly(fails).times.and_return(false) if fails > 0
 
         lock = double('lock')
-        expect(lock).to receive(:enter).with("my_node").and_return(true)
+        expect(lock).to receive(:enter).with(name: "my_node").and_return(true)
 
         expect(Semaphore).to receive(:get_or_create).and_return(*([failing_lock] * fails + [lock]))
 
@@ -31,9 +31,9 @@ describe Choregraphie::ConsulLock do
 
       it 'must exit the lock' do
         failing_lock = double('failing_lock')
-        expect(failing_lock).to receive(:exit).with("my_node").exactly(fails).times.and_return(false) if fails > 0
+        expect(failing_lock).to receive(:exit).with(name: "my_node").exactly(fails).times.and_return(false) if fails > 0
         lock = double('lock')
-        expect(lock).to receive(:exit).with("my_node").and_return(true)
+        expect(lock).to receive(:exit).with(name: "my_node").and_return(true)
 
         expect(Semaphore).to receive(:get_or_create).and_return(*([failing_lock] * fails + [lock]))
 
@@ -60,7 +60,7 @@ describe Choregraphie::ConsulLock do
     it 'must count service instances correctly' do
       expect(Diplomat::Service).to receive(:get).with('test-service', :all, {}).and_return([1,2,3,4,5,6])
       lock = double('lock')
-      expect(lock).to receive(:enter).with("my_node").and_return(true)
+      expect(lock).to receive(:enter).with(name: "my_node").and_return(true)
 
       expect(Semaphore).to receive(:get_or_create).with('/chef_lock/test', 3).and_return(lock)
 
