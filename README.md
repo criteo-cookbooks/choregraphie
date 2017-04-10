@@ -67,6 +67,8 @@ Slightly more advanced primitives:
   maintenance mode on the consul agent before the choregraphie starts.
 * ConsulHealthCheck: `consul_health_check(checkids: %w(service:consul-http-agent service:myhealthcheck))` will block until consul health check is passing. By default it will wait for 150s before failing the chef run. ids for checkids are the composition of the check type  and the id of the check (For ex. for service check myhealthcheck, id is service:myhealthcheck`)
 
+Note: all primitives interacting with consul require diplomat gem. You can easily install it with consul cookbook.
+
 
 Missing Primitives
 ------------------
