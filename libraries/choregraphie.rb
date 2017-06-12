@@ -85,7 +85,7 @@ module Choregraphie
     def finish(&block)
       if block
         Chef::Log.debug("Registering a finish block for #{name}")
-        raise " A finish block already regitered" unless @finish.empty?
+        raise " A finish block already registered" unless @finish.empty?
         @finish << block
       end
       @finish
@@ -133,7 +133,7 @@ module Choregraphie
 
       ruby_block before_block_name(resource_name) do
         block do
-          Chef::Log.debug "Resource #{resource_name} will converge"
+          Chef::Log.info "Resource #{resource_name} will converge, running before callbacks"
           before_events.call.each { |b| b.call(resource_name) }
         end
         action :nothing
@@ -144,7 +144,7 @@ module Choregraphie
 
     def on(event, opts = {})
       opts = Mash.new(opts)
-      Chef::Log.warn("Registering on #{event} for #{name}")
+      Chef::Log.info("Registering on #{event} for #{name}")
       case event
       when String # resource name
         resource_name = event
@@ -153,8 +153,8 @@ module Choregraphie
       when Regexp
         on_each_resource do |resource, choregraphie|
           next unless resource.to_s =~ event
-          Chef::Log.warn "Will create a dynamic recipe for #{resource}"
-          Chef::Recipe.new(:choregraphie, "dynamic_resource_for_#{resource.to_s}_#{clean_name}", run_context).instance_eval do
+          Chef::Log.debug "Will create a dynamic recipe for #{resource}"
+          Chef::Recipe.new(:choregraphie, "dynamic_recipe_for_#{resource.to_s}_#{clean_name}", run_context).instance_eval do
             choregraphie.setup_hook(resource.to_s, opts)
           end
         end
@@ -164,8 +164,8 @@ module Choregraphie
         on_each_resource do |resource, choregraphie|
           if resource.class.properties.has_key?(:weight)
             next if resource.weight <= weight_threshold
-            Chef::Log.warn "Will create a dynamic recipe for #{resource}"
-            Chef::Recipe.new(:choregraphie, "dynamic_resource_for_#{resource.to_s}_#{clean_name}", run_context).instance_eval do
+            Chef::Log.debug "Will create a dynamic recipe for #{resource}"
+            Chef::Recipe.new(:choregraphie, "dynamic_recipe_for_#{resource.to_s}_#{clean_name}", run_context).instance_eval do
               choregraphie.setup_hook(resource.to_s, opts)
             end
           else
