@@ -62,10 +62,16 @@ choregraphie 'execute' do
   on /^log\[/
 
   on :weighted_resources
+  on :converge_start
 
   before do |resource|
-    Chef::Log.warn("I am called before! for resource " + resource.to_s)
-    filename = resource.to_s.gsub(/\W+/, '_').gsub(/_$/,'')
+    filename = if resource.nil?
+                 Chef::Log.warn("I am called before! for converge start")
+                 'converge_start'
+               else
+                 Chef::Log.warn("I am called before! for resource " + resource.to_s)
+                 resource.to_s.gsub(/\W+/, '_').gsub(/_$/,'')
+               end
     File.open(::File.join(dir, filename), 'a') { |file| file.write("before\n") }
   end
   cleanup do |resource|
@@ -77,7 +83,6 @@ choregraphie 'execute' do
     Chef::Log.warn('I am called at finish block')
     File.open(::File.join(dir, 'cleanup'), 'a') { |file| file.write("finish") }
   end
-
 end
 
 log "a_log_defined_after_choregraphie"

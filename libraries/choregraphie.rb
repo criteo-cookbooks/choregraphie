@@ -172,9 +172,16 @@ module Choregraphie
             raise "Resource #{resource} does not respond to :weight method. There is most likely a bug in resource-weight cookbook"
           end
         end
-
+      when :converge_start
+        before_events = method(:before)
+        Chef.event_handler do
+          on :converge_start do
+            Chef::Log.info "Chef client starting to converge, running before callbacks."
+            before_events.call.each { |b| b.call }
+          end
+        end
       else
-        #TODO
+        # TODO
         raise "Symbol type is not yet supported"
       end
     end
