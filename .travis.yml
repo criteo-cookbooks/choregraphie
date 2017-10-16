@@ -3,7 +3,8 @@ cache: bundler
 rvm:
 - 2.3.0
 deploy:
-  edge:
+  skip_cleanup: true
+  edge: true
   provider: chef-supermarket
   user_id: criteo
   cookbook_category: Utilities
