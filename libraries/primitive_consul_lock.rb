@@ -35,10 +35,12 @@ module Choregraphie
       @concurrency ||= case
                        when @options[:service]
                          require 'diplomat'
+                         opts = @options[:service][:options] || {}
+                         opts[:dc] = @options[:datacenter] if @options[:datacenter]
                          total = Diplomat::Service.get(
                            @options[:service][:name],
                            :all,
-                           @options[:service][:options] || {}
+                           opts
                          ).count
                          # TODO: check only passing instances
                          [1,(@options[:service][:concurrency_ratio] * total).to_i].max
@@ -55,7 +57,7 @@ module Choregraphie
 
     def semaphore
       # this object cannot be reused after enter/exit
-      semaphore_class.get_or_create(path, concurrency)
+      semaphore_class.get_or_create(path, concurrency, dc: @options[:datacenter])
     end
 
     def backoff
@@ -116,20 +118,20 @@ module Choregraphie
 
   class Semaphore
 
-    def self.get_or_create(path, concurrency)
+    def self.get_or_create(path, concurrency, dc: nil)
       require 'diplomat'
       retry_left = 5
       value =  Mash.new({ version: 1, concurrency: concurrency, holders: {} })
       current_lock = begin
                        Chef::Log.info "Fetch lock state for #{path}"
-                       Diplomat::Kv.get(path, decode_values: true)
+                       Diplomat::Kv.get(path, decode_values: true, dc: dc)
                      rescue Diplomat::KeyNotFound
                        Chef::Log.info "Lock for #{path} did not exist, creating with value #{value}"
-                       Diplomat::Kv.put(path, value.to_json, cas: 0) # we ignore success/failure of CaS
+                       Diplomat::Kv.put(path, value.to_json, cas: 0, dc: dc) # we ignore success/failure of CaS
                        (retry_left -= 1) > 0 ? retry : raise
                      end.first
       desired_lock = bootstrap_lock(value, current_lock)
-      new(path, desired_lock)
+      new(path, desired_lock, dc)
     end
 
     def self.bootstrap_lock(desired_value, current_lock)
@@ -141,10 +143,11 @@ module Choregraphie
       desired_lock
     end
 
-    def initialize(path, new_lock)
+    def initialize(path, new_lock, dc = nil)
       @path = path
       @h    = JSON.parse(new_lock['Value'])
       @cas  = new_lock['ModifyIndex']
+      @dc   = dc
     end
 
     def already_entered?(opts)
@@ -166,7 +169,7 @@ module Choregraphie
       if can_enter_lock?(opts)
         enter_lock(opts)
         require 'diplomat'
-        result = Diplomat::Kv.put(@path, to_json, cas: @cas)
+        result = Diplomat::Kv.put(@path, to_json, cas: @cas, dc: @dc)
         Chef::Log.debug("Someone updated the lock at the same time, will retry") unless result
         result
       else
@@ -184,7 +187,7 @@ module Choregraphie
       if already_entered?(opts)
         exit_lock(opts)
         require 'diplomat'
-        result = Diplomat::Kv.put(@path, to_json, cas: @cas)
+        result = Diplomat::Kv.put(@path, to_json, cas: @cas, dc: @dc)
         Chef::Log.debug("Someone updated the lock at the same time, will retry") unless result
         result
       else
