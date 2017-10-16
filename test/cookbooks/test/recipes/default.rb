@@ -17,7 +17,7 @@ end
 
 # Using chef provided resource
 execute 'converging' do
-  command 'uname'
+  command 'whoami'
 end
 execute 'not_converging' do
   command 'reboot'
@@ -47,7 +47,7 @@ custom_resource 'my useless custom resource' do
   only_if { false }
 end
 
-execute 'uname' do
+execute 'whoami' do
   weight 2
 end
 
