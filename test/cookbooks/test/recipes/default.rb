@@ -51,6 +51,11 @@ execute 'whoami' do
   weight 2
 end
 
+choregraphie 'ensure_weight' do
+  on :weighted_resources
+  ensure_choregraphie
+end
+
 choregraphie 'execute' do
   on 'execute[converging]'
   on 'execute[not_converging]'

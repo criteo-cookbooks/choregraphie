@@ -3,7 +3,7 @@ require_relative 'choregraphie'
 module Choregraphie
 
   class Primitive
-    @@primitives    = []
+    @@primitives    ||= []
 
     def register(choregraphie)
       raise NotImplementedError, "You must implement :register method"

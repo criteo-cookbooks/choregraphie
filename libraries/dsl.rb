@@ -3,7 +3,7 @@ module Choregraphie
 
     # DSL helper
     def choregraphie(name)
-      Choregraphie.new(name, &Proc.new)
+      Choregraphie.add(Choregraphie.new(name, &Proc.new))
     end
   end
 end
