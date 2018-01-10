@@ -7,7 +7,20 @@ require 'chef/provider'
 module Choregraphie
   class Choregraphie
 
+    @@choregraphies = {}
+
+    def self.all
+      @@choregraphies.values
+    end
+
+    def self.add(choregraphie)
+      raise "Choregraphie #{choregraphie.name} is already defined" if @@choregraphies[choregraphie.name]
+
+      @@choregraphies[choregraphie.name] = choregraphie
+    end
+
     attr_reader :name
+    attr_reader :resources
 
     def clean_name
       name.gsub(/[^a-z]+/, '_')
@@ -15,6 +28,8 @@ module Choregraphie
 
     def initialize(name, &block)
       @name = name
+      # Contain the list of resources protected by this choregraphie
+      @resources = []
       @before = []
       @cleanup = []
       @finish = []
@@ -121,6 +136,7 @@ module Choregraphie
     end
 
     def setup_hook(resource_name, opts)
+      resources << resource_name
 
       # catch before in the closure
       before_events = method(:before)

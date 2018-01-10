@@ -66,6 +66,11 @@ Slightly more advanced primitives:
 * ConsulMaintenance: `consul_maintenance reason: 'My reason'` will enable.
   maintenance mode on the consul agent before the choregraphie starts.
 * ConsulHealthCheck: `consul_health_check(checkids: %w(service:consul-http-agent service:myhealthcheck))` will block until consul health check is passing. By default it will wait for 150s before failing the chef run. ids for checkids are the composition of the check type  and the id of the check (For ex. for service check myhealthcheck, id is service:myhealthcheck`).
+* EnsureChoregraphie: `ensure_choregraphie` will make sure that another
+  choregraphie is already protecting the resources, or wait for a file (an
+  optional file path can be provided). This primitive is useful for cookbook
+  providers to make sure users will protect some critical
+  resources.
 
 Note: all primitives interacting with consul require the diplomat gem. You can easily install it with consul cookbook.
 
