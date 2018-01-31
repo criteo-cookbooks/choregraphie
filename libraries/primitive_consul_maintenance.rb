@@ -19,19 +19,32 @@ module Choregraphie
       yield if block_given?
     end
 
-    def register(choregraphie)
+    def maintenance?
+      checks = Diplomat::Agent.checks()
+      maint_status = checks.dig('_node_maintenance', 'Status')
+      maint_status == 'critical' && checks.dig('_node_maintenance', 'Notes')
+    end
 
+    def register(choregraphie)
       choregraphie.before do
         require 'diplomat'
-        Diplomat::Maintenance.enable(true, @options[:reason])
+        if (maint_notes = maintenance?)
+          Chef::Log.warn "Consul maintenance was already enabled (reason: #{maint_notes})."
+        else
+          Diplomat::Maintenance.enable(true, @options[:reason])
+        end
       end
 
       choregraphie.cleanup do
         require 'diplomat'
-        # WARNING
-        # This means that any chef run will disable the maintenance mode on the
-        # node
-        Diplomat::Maintenance.enable(false, @options[:reason])
+        if (maint_notes = maintenance?)
+          if maint_notes == @options[:reason]
+            Chef::Log.info "Consul maintenance will be disabled (reason: #{maint_notes})."
+            Diplomat::Maintenance.enable(false, @options[:reason])
+          else
+            Chef::Log.warn "Consul maintenance was enabled by something else than this choregraphie (reason: #{maint_notes}, expected_reason: #{@options[:reason]}). So we won't disable it."
+          end
+        end
       end
     end
   end
