@@ -10,7 +10,7 @@ module Choregraphie
 
     def register(choregraphie)
       # We clear the resources list since we do not want other choregraphies
-      # with to think that they are protected.
+      # to think that they are protected with this.
       choregraphie.resources.clear
 
       choregraphie.before do |resource_name|

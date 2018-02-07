@@ -42,7 +42,7 @@ module Choregraphie
             Chef::Log.info "Consul maintenance will be disabled (reason: #{maint_notes})."
             Diplomat::Maintenance.enable(false, @options[:reason])
           else
-            Chef::Log.warn "Consul maintenance was enabled by something else than this choregraphie (reason: #{maint_notes}, expected_reason: #{@options[:reason]}). So we won't disable it."
+            Chef::Log.warn "Consul maintenance was enabled by something other than this choregraphie (reason: #{maint_notes}, expected_reason: #{@options[:reason]}). So we won't disable it."
           end
         end
       end

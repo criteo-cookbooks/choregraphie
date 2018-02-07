@@ -28,7 +28,7 @@ module Choregraphie
 
     def initialize(name, &block)
       @name = name
-      # Contain the list of resources protected by this choregraphie
+      # Contains the list of resources protected by this choregraphie
       @resources = []
       @before = []
       @cleanup = []
@@ -36,7 +36,7 @@ module Choregraphie
 
       # read all available primitives and make them available with a method
       # using their name. It allows to call `check_file '/tmp/titi'` to
-      # instanciate the CheckFile primitive
+      # instantiate the CheckFile primitive
       Primitive.all.each do |klass|
         instance_eval <<-EOM
         def #{klass.primitive_name}(*args, &block)
@@ -198,7 +198,7 @@ module Choregraphie
         end
       else
         # TODO
-        raise "Symbol type is not yet supported"
+        raise "Symbol types are not yet supported"
       end
     end
 

@@ -1,6 +1,8 @@
 # choregraphie
 
-choregraphie is French for choreography.
+choregraphie is French for choreography. By providing primitives to allow you to easily coordinate the convergence of Chef resources, choregraphie enables you to orchestrate the execution of actions that could cause downtime in clustered applications, among other things. For example, say you want to upgrade your Mesos cluster to the latest version but don't want to take the whole cluster offline. You could use an external orchestrator, but choregraphie means you can reduce the number of moving parts and keep all your logic and code in Chef.
+
+By protecting your important resources with choregraphie, you can isolate risk to a single place, enabling much more controlled application of potentially dangerous changes.
 
 [![Build Status](https://travis-ci.org/criteo-cookbooks/choregraphie.svg?branch=master)](https://travis-ci.org/criteo-cookbooks/choregraphie)
 
@@ -72,7 +74,7 @@ Slightly more advanced primitives:
   providers to make sure users will protect some critical
   resources.
 
-Note: all primitives interacting with consul require the diplomat gem. You can easily install it with consul cookbook.
+Note: all primitives interacting with consul require the diplomat gem. You can install it easily with consul cookbook.
 
 
 Missing Primitives
@@ -85,4 +87,4 @@ How to write a primitive
 
 You should have a look at the example primitives such as `check_file`.
 
-Primitives can implement two callbacks: _before_ and _cleanup_. See primitives section above for more details.
+Primitives can implement two callbacks: _before_ and _cleanup_. See the Primitives section above for more details.

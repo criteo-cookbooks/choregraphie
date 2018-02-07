@@ -10,7 +10,7 @@ WebMock.disable_net_connect!(allow: [
 
 RSpec.configure do |config|
   config.before :each do
-    # Reset chef between all tests. Otherwise choregraphie blocks from various
+    # Reset Chef between all tests. Otherwise choregraphie blocks from various
     # specs are concatenated
     Chef::Config.reset
   end end
