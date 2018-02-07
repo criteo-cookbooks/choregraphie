@@ -3,7 +3,8 @@ require_relative 'primitive_consul_lock'
 module Choregraphie
   # This primitive is based on optimistic concurrency (using compare-and-swap) rather than consul sessions.
   # It allows to support the unavailability of the local consul agent (for reboot, reinstall, ...)
-  # It is based on the notion of rack: all nodes inside a rack can take the lock at the same time. We only allow a given number of racks to take the lock at the same time.
+  # It is based on the notion of rack: all nodes inside a rack can take the lock at the same time. We only
+  # allow a given number of racks to take the lock at the same time.
   # Note: this lock does not guarantee that all nodes of a given rack will be done at the same time.
   class ConsulRackLock < ConsulLock
     def initialize(options = {}, &block)
@@ -20,7 +21,7 @@ module Choregraphie
       end
 
       choregraphie.finish do
-        # hack: We can ignore failure there since it is only to release
+        # HACK: We can ignore failure there since it is only to release
         # the lock. If there is a temporary failure, we can wait for the
         # next run to release the lock without compromising safety.
         # The reason we have to be a bit more relaxed here, is that all

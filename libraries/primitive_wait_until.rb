@@ -1,9 +1,9 @@
 require_relative 'primitive'
 require 'mixlib/shellout'
 
-# This primitive takes a block, a mixlib::shellout or a command (as a string)
-# it will execute the command/block/shellout until it returns true (exits with
-# 0 for commands). Any other value or StandardException will be interpretation
+# This primitive takes a block, a mixlib::shellout or a command (as a string).
+# It will execute the command/block/shellout until it returns true (exits with
+# 0 for commands). Any other value or StandardException will be interpretated
 # as a failure of the condition
 module Choregraphie
   class WaitUntil < Primitive
@@ -16,6 +16,7 @@ module Choregraphie
       @period = options['period'] || 5
       @name   = options['name']
       @when   = options['when'] || 'before'
+
       # Store the condition as a block
       case condition
       when Mixlib::ShellOut
