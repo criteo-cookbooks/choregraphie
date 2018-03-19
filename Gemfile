@@ -19,7 +19,7 @@ end
 
 # Other gems should go after this comment
 gem 'webmock'
-gem 'diplomat'
+gem 'diplomat',      '>= 2.0.2'
 
 gem 'winrm-elevated'
 gem 'rubocop', '=0.45.0'
