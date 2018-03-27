@@ -109,11 +109,6 @@ module Choregraphie
       @options[:path]
     end
 
-    def validate!(name, klass)
-      raise ArgumentError, "Missing #{name}" unless @options.has_key?(name)
-      raise ArgumentError, "Invalid #{name} (must be a #{klass})" unless @options[name].is_a?(klass)
-    end
-
   end
 
   class Semaphore

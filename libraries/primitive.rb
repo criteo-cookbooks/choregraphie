@@ -26,5 +26,14 @@ module Choregraphie
       name = klass.to_s.split('::').last.gsub(/(.)([A-Z]+)/,'\1_\2').downcase.to_sym
       klass.primitive_name name
     end
+
+    def validate!(name, klass)
+      raise ArgumentError, "Missing #{name}" unless @options.has_key?(name)
+      raise ArgumentError, "Invalid #{name} (must be a #{klass})" unless @options[name].is_a?(klass)
+    end
+
+    def validate_optional!(name, klass)
+      raise ArgumentError, "Invalid #{name} (must be a #{klass})" unless @options[name].is_a?(klass) if @options.has_key?(name)
+    end
   end
 end
