@@ -4,14 +4,15 @@ rvm:
 - 2.3.0
 deploy:
   skip_cleanup: true
-  edge: true
+  edge:
+    source: criteo-forks/dpl
+    branch: chef_ruby2
   provider: chef-supermarket
   user_id: criteo
   cookbook_category: Utilities
   client_key: ".travis/client.pem"
   on:
     tags: true
-    all_branches: true
 env:
   global:
   - secure: PZ2Y9R/q8+thamOjDuN64Cyv17Jy8P2fyPcEc5nBMogT0GUuMXOstSrIIiZRRomZe03fGd3wTVP1YMF+3i6XxXahwHPf/rXdiPbrG9vz+PSXZG4/qKF2Cnv6YjDOw5ZEfUcx4D+Jx3dyggwG1xG5Od++Mj7UKJQ9zLt21RMNSmTbAWcaIQx1RPRcbHhstYhA0cf/c2hSCs812Eeph4Z6BdJ6KrVecvQNuDHCHACe+25w0d6/xo8lW3aZ+8/xOS624WTagCcqD/M5uppVK50yTI0lfkDHx6DZw4m8fSa1KXh3r3I70WhVNfnGcP8HICIpDF2DhPJ2soask8bFuYpoPMGjKPHTsilhsD/+IL91Seg5Ak9nC7KG/KZDqwOgz4C8fwBvriAq1Hk5Z8iPIA1V9aQ1q88wt5pFZU6XpD7QgZ3b+OrMNrVpTl4ZPGyKeyffwjNeDo5zjaTV0ikpCQ0SIvVr/XADiRViBNGq7LKJHlQmlgtWAKBFCJ8yiBbYVSLCrReA1XP7yyKj/j68GGmAGr55qyvViIiJ2Eqm1PGc7J0JoaiOJsgam/VOLFOh03P1yep3XIw1rsOYLN6BsgYOKTQG6FEJB5g1Us6zLBb33mrvW9P2ryhZn1nB3Lmn0YjdQc/aRAlMKEKeoINRVDdfcwJ5tgIsD6tt4cFrUv6r4YY=
