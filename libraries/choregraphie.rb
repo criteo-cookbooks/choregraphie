@@ -208,7 +208,10 @@ module Choregraphie
       myself = self
       Chef.event_handler do
         on :converge_start do |run_context|
-          run_context.resource_collection.each do |resource|
+          # yielded block can (and will) modify the resource collection
+          # (for instance by adding resources)
+          collection_copy = run_context.resource_collection.map(&:itself)
+          collection_copy.each do |resource|
             yield resource, myself
           end
         end
