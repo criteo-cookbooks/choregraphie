@@ -3,7 +3,7 @@ require 'spec_helper'
 describe 'test::default' do
   context 'When all attributes are default, on centos 7.5.1804' do
     let(:chef_run) do
-      runner = ChefSpec::ServerRunner.new(
+      runner = ChefSpec::SoloRunner.new(
         platform: 'centos',
         version:  '7.5.1804'
       )
@@ -17,7 +17,7 @@ describe 'test::default' do
   end
   context 'When all attributes are default, on windows 8.1' do
     let(:chef_run) do
-      runner = ChefSpec::ServerRunner.new(
+      runner = ChefSpec::SoloRunner.new(
         platform: 'windows',
         version:  '8.1'
       )
