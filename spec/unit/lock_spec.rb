@@ -33,7 +33,7 @@ describe Choregraphie::Semaphore do
         stub_request(:get, "http://localhost:8500/v1/kv/check-lock/my_lock").
           to_return(existing_response)
 
-        expect(Semaphore.get_or_create('/check-lock/my_lock', 2)).to be_a(Semaphore)
+        expect(Semaphore.get_or_create('check-lock/my_lock', 2)).to be_a(Semaphore)
       end
     end
 
@@ -46,7 +46,7 @@ describe Choregraphie::Semaphore do
           with(:body => "{\"version\":1,\"concurrency\":2,\"holders\":{}}").
           to_return( status: 200, body: "true")
 
-        expect(Semaphore.get_or_create('/check-lock/my_lock', 2)).to be_a(Semaphore)
+        expect(Semaphore.get_or_create('check-lock/my_lock', 2)).to be_a(Semaphore)
       end
     end
   end
@@ -54,14 +54,14 @@ describe Choregraphie::Semaphore do
   let(:lock) do
     value = {version: 1, concurrency: 5, holders: {another_node: 12345 }}.to_json
     Semaphore.new(
-      '/check-lock/my_lock',
+      'check-lock/my_lock',
       { 'Value' => value, 'ModifyIndex' => 42 }
     )
   end
   let(:full_lock) do
     value = {version: 1, concurrency: 1, holders: {another_node: 12345 }}.to_json
     Semaphore.new(
-      '/check-lock/my_lock',
+      'check-lock/my_lock',
       { 'Value' => value, 'ModifyIndex' => 42 }
     )
   end
