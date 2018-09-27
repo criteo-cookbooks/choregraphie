@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gem 'berkshelf'
 gem 'kitchen-vagrant'
-gem 'chefspec'
+gem 'chefspec', '< 7.3.0'
 gem 'rake'
 gem 'foodcritic'
 gem 'chef-zero-scheduled-task'
@@ -23,3 +23,4 @@ gem 'diplomat',      '>= 2.0.2'
 
 gem 'winrm-elevated'
 gem 'rubocop', '=0.45.0'
+gem 'openssl', '>= 2.0.5'
