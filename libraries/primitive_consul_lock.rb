@@ -67,7 +67,8 @@ module Choregraphie
     end
 
     def wait_until(action, opts = {})
-      Chef::Log.info "Will #{action} the lock #{path}"
+      dc = "(in #{@options[:datacenter]})" if @options[:datacenter]
+      Chef::Log.info "Will #{action} the lock #{path} #{dc}"
       success = 0.upto(opts[:max_failures] || Float::INFINITY).any? do |tries|
         begin
           yield || backoff
