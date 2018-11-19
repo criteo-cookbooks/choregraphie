@@ -40,7 +40,7 @@ module Choregraphie
         non_passing = @options[:checkids]
           .select { |id| checks[id]['CheckID'] }
           .reject { |id| checks[id]['Status'] == 'passing' }
-          .tap { |id| Chef::Log.warn "Check #{id} failed" }
+          .tap { |ids| Chef::Log.warn "Check #{ids} failed" if ids.any? }
 
         return true if non_passing.empty?
 
