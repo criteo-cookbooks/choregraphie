@@ -30,6 +30,9 @@ driver:
         volume_type: gp2
         delete_on_termination: true
 
+provisioner:
+  require_chef_omnibus: "12.18.31"
+
 transport:
   ssh_key:  <%= ENV['HOME'] %>/.ssh/id_rsa
 

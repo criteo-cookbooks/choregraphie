@@ -109,12 +109,16 @@ module Choregraphie
     # Ensure resource exists and its provider supports whyrun
     def self.ensure_whyrun_supported(run_context, resource_name, ignore_missing_resource)
       begin
-      resource = run_context.resource_collection.find(resource_name)
+        resource = run_context.resource_collection.find(resource_name)
       rescue Chef::Exceptions::ResourceNotFound
         if ignore_missing_resource
           # some resources are defined only when used
           # so we ignore them
           return
+        elsif resource_name =~ /,/
+          Chef::Log.warn "#{resource_name} contains a comma which triggers https://github.com/criteo-cookbooks/choregraphie/issues/43, we can't check if resource supports why run or not"
+          resource = run_context.resource_collection.map(&:itself).select { |r| r.to_s == resource_name }.first
+          raise Chef::Exceptions::ResourceNotFound unless resource
         else
           raise
         end
