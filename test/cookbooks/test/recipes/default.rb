@@ -56,6 +56,10 @@ choregraphie 'ensure_weight' do
   ensure_choregraphie
 end
 
+execute 'name with a, in its name' do
+  command 'uname'
+end
+
 choregraphie 'execute' do
   on 'execute[converging]'
   on 'execute[not_converging]'
@@ -63,6 +67,7 @@ choregraphie 'execute' do
   on 'test_simple_resource[not_converging]'
   on 'custom_resource[my converging custom resource]'
   on 'custom_resource[my useless custom resource]'
+  on /execute\[name with a,/
 
   on /^log\[/
 
