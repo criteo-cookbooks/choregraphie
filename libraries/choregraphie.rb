@@ -117,7 +117,7 @@ module Choregraphie
           return
         elsif resource_name =~ /,/
           Chef::Log.warn "#{resource_name} contains a comma which triggers https://github.com/criteo-cookbooks/choregraphie/issues/43, we can't check if resource supports why run or not"
-          resource = run_context.resource_collection.map(&:itself).select { |r| r.to_s == resource_name }.first
+          resource = run_context.resource_collection.map(&:itself).find { |r| r.declared_key == resource_name }
           raise Chef::Exceptions::ResourceNotFound unless resource
         else
           raise
@@ -131,7 +131,7 @@ module Choregraphie
             unless provider.whyrun_supported?
               Chef::Log.warn "Resource providers must support whyrun in order to be used by choregraphie"
               Chef::Log.warn "If you are defining a custom resource see https://github.com/chef/chef/issues/4537 for a possible workaround"
-              raise "Provider for #{a} on #{resource.to_s} must support whyrun"
+              raise "Provider for #{a} on #{resource.declared_key} must support whyrun"
             end
           end
       else
@@ -172,10 +172,10 @@ module Choregraphie
         setup_hook(resource_name, opts)
       when Regexp
         on_each_resource do |resource, choregraphie|
-          next unless resource.to_s =~ event
+          next unless resource.declared_key =~ event
           Chef::Log.debug "Will create a dynamic recipe for #{resource}"
-          Chef::Recipe.new(:choregraphie, "dynamic_recipe_for_#{resource.to_s}_#{clean_name}", run_context).instance_eval do
-            choregraphie.setup_hook(resource.to_s, opts)
+          Chef::Recipe.new(:choregraphie, "dynamic_recipe_for_#{resource.declared_key}_#{clean_name}", run_context).instance_eval do
+            choregraphie.setup_hook(resource.declared_key, opts)
           end
         end
       when :weighted_resources
@@ -185,8 +185,8 @@ module Choregraphie
           if resource.class.properties.has_key?(:weight)
             next if resource.weight <= weight_threshold
             Chef::Log.debug "Will create a dynamic recipe for #{resource}"
-            Chef::Recipe.new(:choregraphie, "dynamic_recipe_for_#{resource.to_s}_#{clean_name}", run_context).instance_eval do
-              choregraphie.setup_hook(resource.to_s, opts)
+            Chef::Recipe.new(:choregraphie, "dynamic_recipe_for_#{resource.declared_key}_#{clean_name}", run_context).instance_eval do
+              choregraphie.setup_hook(resource.declared_key, opts)
             end
           else
             raise "Resource #{resource} does not respond to :weight method. There is most likely a bug in resource-weight cookbook"
