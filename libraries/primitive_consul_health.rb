@@ -37,6 +37,10 @@ module Choregraphie
           next
         end
 
+        @options[:checkids].each do |check_id|
+          raise "Check #{check_id} is not registered" unless checks.key?(check_id)
+        end
+
         non_passing = @options[:checkids]
           .select { |id| checks[id]['CheckID'] }
           .reject { |id| checks[id]['Status'] == 'passing' }
