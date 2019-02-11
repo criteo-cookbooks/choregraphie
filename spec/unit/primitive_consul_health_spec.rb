@@ -49,4 +49,17 @@ describe Choregraphie::ConsulHealthCheck do
       choregraphie.cleanup.each(&:call)
     end
   end
+
+  context %(when the service doesn't exist) do
+    it 'must fail with an explicit error' do
+      stub_request(:get, 'http://localhost:8500/v1/agent/checks')
+        .to_return([
+          {
+            body: {}.to_json,
+          },
+        ] * 3,)
+
+      expect { choregraphie.cleanup.each(&:call) }.to raise_error(/Check service:ping is not registered/)
+    end
+  end
 end
