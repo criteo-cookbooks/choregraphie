@@ -1,5 +1,7 @@
 # choregraphie
 
+Test
+
 choregraphie is French for choreography. By providing primitives to allow you to easily coordinate the convergence of Chef resources, choregraphie enables you to orchestrate the execution of actions that could cause downtime in clustered applications, among other things. For example, say you want to upgrade your Mesos cluster to the latest version but don't want to take the whole cluster offline. You could use an external orchestrator, but choregraphie means you can reduce the number of moving parts and keep all your logic and code in Chef.
 
 By protecting your important resources with choregraphie, you can isolate risk to a single place, enabling much more controlled application of potentially dangerous changes.
