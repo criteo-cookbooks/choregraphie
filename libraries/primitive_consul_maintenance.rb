@@ -35,7 +35,7 @@ module Choregraphie
       token = @options[:consul_token]
       @options.has_key?(:service_id) ?
           Diplomat::Service.maintenance(@options[:service_id], {enable: enable, reason: @options[:reason], token: token})
-          : Diplomat::Maintenance.enable(enable, @options[:reason], @options.merge({token: token}))
+          : Diplomat::Maintenance.enable(enable, @options[:reason], {token: token})
     end
 
     def register(choregraphie)

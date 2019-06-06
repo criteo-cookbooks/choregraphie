@@ -12,14 +12,14 @@ describe Choregraphie::ConsulMaintenance do
 
     it 'Must enable maintenance mode before' do
       stub_request(:get, "localhost:8500/v1/agent/checks").to_return(status: 200, body: "{}")
-      expect(Diplomat::Maintenance).to receive(:enable).with(true, 'Testing', {"reason"=>"Testing", "token"=>"foo"}).and_return(true)
+      expect(Diplomat::Maintenance).to receive(:enable).with(true, 'Testing', {'token': 'foo'}).and_return(true)
       choregraphie.before.each { |block| block.call }
     end
 
     it 'Must disable maintenance mode in cleanup' do
       stub_request(:get, "localhost:8500/v1/agent/checks")
         .to_return(status: 200, body: '{"_node_maintenance": {"CheckID": "_node_maintenance", "Status": "critical", "Notes": "Testing"}}')
-      expect(Diplomat::Maintenance).to receive(:enable).with(false, 'Testing', {"reason"=>"Testing", "token"=>"foo"}).and_return(true)
+      expect(Diplomat::Maintenance).to receive(:enable).with(false, 'Testing', {'token': 'foo'}).and_return(true)
       choregraphie.cleanup.each { |block| block.call }
     end
 
