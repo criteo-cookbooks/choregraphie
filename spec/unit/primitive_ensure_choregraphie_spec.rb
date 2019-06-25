@@ -14,8 +14,7 @@ describe Choregraphie::EnsureChoregraphie do
   it 'must check file if resource is not protected' do
     expect(Choregraphie::Choregraphie).to receive(:all).and_return(
       [
-        double(name: 'test', resources: ['test[name]']),
-        double(name: 'test2', resources: [])
+        double(name: 'toto', resources: ['toto[name]']),
       ])
     expect(File).to receive(:exists?).with('random').and_return(true)
     choregraphie.before.each { |block| block.call 'test[name]' }
@@ -24,7 +23,7 @@ describe Choregraphie::EnsureChoregraphie do
     expect(Choregraphie::Choregraphie).to receive(:all).and_return(
       [
         double(name: 'test', resources: ['test[name]']),
-        double(name: 'test2', resources: ['test[name]'])
+        double(name: 'toto', resources: ['toto[name]']),
       ])
     expect(File).to_not receive(:exists?).with('random')
     choregraphie.before.each { |block| block.call 'test[name]' }
