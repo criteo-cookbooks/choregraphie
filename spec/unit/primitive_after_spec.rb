@@ -4,7 +4,7 @@ describe Choregraphie::After do
   let(:block) { proc {} }
   let(:choregraphie) do
     Choregraphie::Choregraphie.new('test') do
-      after(&block)
+      after('demo', &block)
     end
   end
 
@@ -76,7 +76,7 @@ describe Choregraphie::After do
   end
 
   describe 'invariants' do
-    subject { Choregraphie::After.new }
+    subject { Choregraphie::After.new('demo') }
     before { subject.register(choregraphie) }
 
     describe '.set_in_progress' do

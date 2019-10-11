@@ -2,8 +2,9 @@ require_relative 'primitive'
 
 module Choregraphie
   class After < Primitive
-    def initialize(&block)
+    def initialize(name, &block)
       @block = block
+      @name = name
     end
 
     def register(choregraphie)
@@ -47,11 +48,15 @@ module Choregraphie
     private
 
     def inprogress_marker
-      File.join(Chef::Config[:file_cache_path], "choregraphie-#{@choregraphie_name.gsub(/[^a-zA-Z0-9]/, '_')}-inprogress")
+      File.join(Chef::Config[:file_cache_path], "#{marker_prefix}-inprogress")
     end
 
     def install_marker
-      File.join(Chef::Config[:file_cache_path], "choregraphie-#{@choregraphie_name.gsub(/[^a-zA-Z0-9]/, '_')}-installed")
+      File.join(Chef::Config[:file_cache_path], "#{marker_prefix}-installed")
+    end
+
+    def marker_prefix
+      "choregraphie-#{@choregraphie_name.gsub(/[^a-zA-Z0-9]/, '_')}-#{@name.gsub(/[^a-zA-Z0-9]/, '_')}"
     end
   end
 end
