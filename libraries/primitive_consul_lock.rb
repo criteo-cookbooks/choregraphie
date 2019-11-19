@@ -107,7 +107,7 @@ module Choregraphie
     private
 
     def path
-      @options[:path]
+      @options[:path].sub(/^\//,'')
     end
 
   end
