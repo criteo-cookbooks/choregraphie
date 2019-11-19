@@ -6,7 +6,7 @@ description      'Coordinates the application of changes induced by chef'
 long_description 'Installs/Configures choregraphie'
 issues_url       'https://github.com/criteo-cookbooks/choregraphie' if respond_to? :issues_url
 source_url       'https://github.com/criteo-cookbooks/choregraphie' if respond_to? :source_url
-version          '0.15.5'
+version          '0.15.6'
 supports         'centos'
 supports         'windows'
 
