@@ -1,3 +1,4 @@
+require_relative 'consul'
 require_relative 'primitive'
 require 'chef/mash'
 
@@ -8,12 +9,7 @@ module Choregraphie
 
       @options[:reason] ||= 'Maintenance for Chef Choregraphie'
 
-      if @options[:consul_token]
-        require 'diplomat'
-        Diplomat.configure do |config|
-          config.acl_token = @options[:consul_token]
-        end
-      end
+      ConsulCommon.setup_consul(@options)
 
       validate_optional!(:service_id, String) # id of the service to put in maintenance
 

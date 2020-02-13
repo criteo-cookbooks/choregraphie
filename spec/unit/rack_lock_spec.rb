@@ -35,7 +35,7 @@ describe Choregraphie::SemaphoreByRack do
         stub_request(:get, 'http://localhost:8500/v1/kv/check-lock/my_lock')
           .to_return(existing_response)
 
-        expect(SemaphoreByRack.get_or_create('check-lock/my_lock', 2)).to be_a(SemaphoreByRack)
+        expect(SemaphoreByRack.get_or_create('check-lock/my_lock', 2, dc:nil, token:nil)).to be_a(SemaphoreByRack)
       end
     end
 
@@ -48,7 +48,7 @@ describe Choregraphie::SemaphoreByRack do
           .with(body: '{"version":1,"concurrency":2,"holders":{}}')
           .to_return(status: 200, body: 'true')
 
-        expect(SemaphoreByRack.get_or_create('check-lock/my_lock', 2)).to be_a(SemaphoreByRack)
+        expect(SemaphoreByRack.get_or_create('check-lock/my_lock', 2, dc:nil, token:nil)).to be_a(SemaphoreByRack)
       end
     end
   end

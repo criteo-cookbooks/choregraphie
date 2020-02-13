@@ -1,3 +1,4 @@
+require_relative 'consul'
 require_relative 'primitive'
 require 'chef/mash'
 require 'chef/application'
@@ -13,12 +14,7 @@ module Choregraphie
       raise ArgumentError, 'Missing checkids option' unless @options[:checkids]
       raise ArgumentError, 'Empty checkids option' if @options[:checkids].empty?
 
-      if @options[:consul_token]
-        require 'diplomat'
-        Diplomat.configure do |config|
-          config.acl_token = @options[:consul_token]
-        end
-      end
+      ConsulCommon.setup_consul(@options)
 
       yield if block_given?
     end
@@ -31,7 +27,7 @@ module Choregraphie
           # We wrap this inside a begin..rescue block
           # so that any consul failure would not instantly
           # result in an exception
-          checks = Diplomat::Check.checks
+          checks = Diplomat::Check.checks(@options)
         rescue => e
           Chef::Log.error "Could not get checks from Consul: #{e}"
           next
