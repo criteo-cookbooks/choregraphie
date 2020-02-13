@@ -6,20 +6,20 @@ describe Choregraphie::ConsulMaintenance do
   context 'When using consul_maintenance on node' do
     let(:choregraphie) do
       Choregraphie::Choregraphie.new('test') do
-        consul_maintenance reason: 'Testing'
+        consul_maintenance reason: 'Testing', consul_token: 'foo'
       end
     end
 
     it 'Must enable maintenance mode before' do
       stub_request(:get, "localhost:8500/v1/agent/checks").to_return(status: 200, body: "{}")
-      expect(Diplomat::Maintenance).to receive(:enable).with(true, 'Testing').and_return(true)
+      expect(Diplomat::Maintenance).to receive(:enable).with(true, 'Testing', {'token': 'foo'}).and_return(true)
       choregraphie.before.each { |block| block.call }
     end
 
     it 'Must disable maintenance mode in cleanup' do
       stub_request(:get, "localhost:8500/v1/agent/checks")
         .to_return(status: 200, body: '{"_node_maintenance": {"CheckID": "_node_maintenance", "Status": "critical", "Notes": "Testing"}}')
-      expect(Diplomat::Maintenance).to receive(:enable).with(false, 'Testing').and_return(true)
+      expect(Diplomat::Maintenance).to receive(:enable).with(false, 'Testing', {'token': 'foo'}).and_return(true)
       choregraphie.cleanup.each { |block| block.call }
     end
 
@@ -42,13 +42,13 @@ describe Choregraphie::ConsulMaintenance do
     let(:service_id) {'service_test'}
     let(:choregraphie) do
       Choregraphie::Choregraphie.new('test') do
-        consul_maintenance service_id: service_id, reason: 'Testing'
+        consul_maintenance service_id: service_id, reason: 'Testing', consul_token: 'foo'
       end
     end
 
     it 'Must enable maintenance mode before' do
       stub_request(:get, 'localhost:8500/v1/agent/checks').to_return(status: 200, body: '{}')
-      expect(Diplomat::Service).to receive(:maintenance).with(service_id, {'enable': true, 'reason': 'Testing'}).and_return(true)
+      expect(Diplomat::Service).to receive(:maintenance).with(service_id, {'enable': true, 'reason': 'Testing', 'token': 'foo'}).and_return(true)
       choregraphie.before.each {|block| block.call}
     end
 
@@ -58,7 +58,7 @@ describe Choregraphie::ConsulMaintenance do
 \"CheckID\": \"_service_maintenance:#{service_id}\",\"Name\": \"Service Maintenance Mode\",\"Status\": \"critical\",
 \"Notes\": \"Testing\",\"Output\": \"\",\"ServiceID\": \"#{service_id}\",\"ServiceName\": \"#{service_id}\",\"ServiceTags\": [],
 \"Definition\": {},\"CreateIndex\": 0,\"ModifyIndex\": 0}}")
-      expect(Diplomat::Service).to receive(:maintenance).with(service_id, {'enable': false, 'reason': 'Testing'}).and_return(true)
+      expect(Diplomat::Service).to receive(:maintenance).with(service_id, {'enable': false, 'reason': 'Testing', 'token': 'foo'}).and_return(true)
       choregraphie.cleanup.each {|block| block.call}
     end
 

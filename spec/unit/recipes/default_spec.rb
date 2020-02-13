@@ -7,7 +7,7 @@ describe 'test::default' do
         platform: 'centos',
         version:  '7.5.1804'
       )
-      stub_command("test -f /tmp/not_converging.tmp").and_return(0)
+      stub_command("test -f #{Dir.tmpdir()}/not_converging.tmp").and_return(0)
       runner.converge(described_recipe)
     end
 
@@ -21,7 +21,7 @@ describe 'test::default' do
         platform: 'windows',
         version:  '8.1'
       )
-      stub_command("test -f /tmp/not_converging.tmp").and_return(0)
+      stub_command("test -f #{Dir.tmpdir()}/not_converging.tmp").and_return(0)
       runner.converge(described_recipe)
     end
 
