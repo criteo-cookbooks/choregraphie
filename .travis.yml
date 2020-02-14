@@ -26,3 +26,5 @@ before_deploy:
 before_install:
 - 'if [ -n "$encrypted_40daeb36df73_iv" ]; then openssl aes-256-cbc -K $encrypted_40daeb36df73_key -iv $encrypted_40daeb36df73_iv
   -in .travis/travis-ci.pem.enc -out ~/.ssh/id_rsa -d; fi'
+- gem uninstall -v '>= 2' -i $(rvm gemdir)@global -ax bundler || true
+- gem install bundler -v '< 2'
