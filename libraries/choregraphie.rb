@@ -19,6 +19,10 @@ module Choregraphie
       @@choregraphies[choregraphie.name] = choregraphie
     end
 
+    def self.clear
+      @@choregraphies.clear
+    end
+
     attr_reader :name
     attr_reader :resources
 
