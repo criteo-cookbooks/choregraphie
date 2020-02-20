@@ -6,6 +6,11 @@ require 'json'
 # This primitive is based on optimistic concurrency (using compare-and-swap) rather than consul sessions.
 # It allows to support the unavailability of the local consul agent (for reboot, reinstall, ...)
 module Choregraphie
+  class ConsulError < StandardError
+    def initialize(msg)
+      super
+    end
+  end
   class ConsulLock < Primitive
     def initialize(options = {}, &block)
       @options = Mash.new(options)
@@ -20,6 +25,7 @@ module Choregraphie
       end
 
       @options[:backoff] ||= 5 # seconds
+      @options[:max_wait] ||= false
 
       ConsulCommon.setup_consul(@options)
 
@@ -66,12 +72,18 @@ module Choregraphie
     def wait_until(action, opts = {})
       dc = "(in #{@options[:datacenter]})" if @options[:datacenter]
       Chef::Log.info "Will #{action} the lock #{path} #{dc}"
+
+      start_time = Time.now
       success = 0.upto(opts[:max_failures] || Float::INFINITY).any? do |tries|
         begin
-          yield || backoff
+          yield
         rescue => e
           Chef::Log.warn "Error while #{action}-ing lock"
           Chef::Log.warn e
+          elapsed = Time.now - start_time
+          if @options[:max_wait] && elapsed > @options[:max_wait]
+            raise "Max time of #{@options[:max_wait]} reached while #{action}-ing lock, failing"
+          end
           backoff
         end
       end
@@ -159,16 +171,14 @@ module Choregraphie
     end
 
     def enter(opts)
-      return true if already_entered?(opts)
+      return if already_entered?(opts)
       if can_enter_lock?(opts)
         enter_lock(opts)
         require 'diplomat'
         result = Diplomat::Kv.put(@path, to_json, cas: @cas, dc: @dc, token: @token)
-        Chef::Log.debug("Someone updated the lock at the same time, will retry") unless result
-        result
+        raise ConsulError.new("Someone updated the lock at the same time, will retry") unless result
       else
-        Chef::Log.debug("Too many lock holders (concurrency:#{concurrency})")
-        false
+        raise ConsulError.new("Too many lock holders (concurrency:#{concurrency})")
       end
     end
 
@@ -182,10 +192,7 @@ module Choregraphie
         exit_lock(opts)
         require 'diplomat'
         result = Diplomat::Kv.put(@path, to_json, cas: @cas, dc: @dc, token: @token)
-        Chef::Log.debug("Someone updated the lock at the same time, will retry") unless result
-        result
-      else
-        true
+        raise ConsulError.new("Someone updated the lock at the same time, will retry") unless result
       end
     end
 
