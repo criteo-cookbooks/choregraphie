@@ -57,22 +57,33 @@ module Choregraphie
       semaphore_class.get_or_create(path, concurrency, dc: @options[:datacenter], token: @options[:token])
     end
 
-    def backoff
-      Chef::Log.warn "Will sleep #{@options[:backoff]}"
+    def backoff(start_time, current_try)
+      started = Time.now - start_time
+      Chef::Log.warn "Will sleep #{@options[:backoff]} between failures, current_try: #{current_try}, started #{human_duration(started)} ago" if (current_try % 100) == 0
       sleep @options[:backoff]
       false # indicates failure
+    end
+
+    def human_duration(duration_in_secs)
+      s = ''
+      s += "#{duration_in_secs / 86400} days, " if duration_in_secs > 86400
+      s += "#{format('%02d', duration_in_secs % 86400 / 3600)}h " if duration_in_secs > 3600
+      s += "#{format('%02d', duration_in_secs % 3600 / 60)}m " if duration_in_secs > 60
+      s += "#{format('%02d', duration_in_secs % 60)}s"
+      s
     end
 
     def wait_until(action, opts = {})
       dc = "(in #{@options[:datacenter]})" if @options[:datacenter]
       Chef::Log.info "Will #{action} the lock #{path} #{dc}"
+      start = Time.now
       success = 0.upto(opts[:max_failures] || Float::INFINITY).any? do |tries|
         begin
-          yield || backoff
+          yield(start, tries) || backoff(start, tries)
         rescue => e
           Chef::Log.warn "Error while #{action}-ing lock"
           Chef::Log.warn e
-          backoff
+          backoff(start, tries)
         end
       end
 
