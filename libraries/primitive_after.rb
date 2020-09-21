@@ -29,7 +29,7 @@ module Choregraphie
     end
 
     def set_in_progress
-      FileUtils.touch(inprogress_marker)
+      FileUtils.touch(inprogress_marker) unless in_progress?
     end
 
     def set_not_in_progress
@@ -41,7 +41,7 @@ module Choregraphie
     end
 
     def set_installed
-      FileUtils.touch(install_marker)
+      FileUtils.touch(install_marker) unless installed?
     end
 
     private
