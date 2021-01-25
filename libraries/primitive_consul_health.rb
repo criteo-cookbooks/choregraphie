@@ -11,8 +11,7 @@ module Choregraphie
       @options[:tries] ||= 10
       @options[:delay] ||= 15
 
-      raise ArgumentError, 'Missing checkids option' unless @options[:checkids]
-      raise ArgumentError, 'Empty checkids option' if @options[:checkids].empty?
+      raise ArgumentError, 'Missing/Empty checkids/services options. You must provide at least one' unless @options[:checkids]&.any? || @options[:services]&.any?
 
       ConsulCommon.setup_consul(@options)
 
@@ -33,14 +32,18 @@ module Choregraphie
           next
         end
 
-        @options[:checkids].each do |check_id|
+        relevant_checks = checks.select do |id, check|
+          @options[:checkids]&.include?(id) || @options[:services].include?(check['ServiceName'])
+        end.values
+
+        @options[:checkids]&.each do |check_id|
           raise "Check #{check_id} is not registered" unless checks.key?(check_id)
         end
 
-        non_passing = @options[:checkids]
-          .select { |id| checks[id]['CheckID'] }
-          .reject { |id| checks[id]['Status'] == 'passing' }
-          .tap { |ids| Chef::Log.warn "Check #{ids} failed" if ids.any? }
+        non_passing = relevant_checks
+          .reject { |check| check['Status'] == 'passing' }
+
+        Chef::Log.warn "Check #{non_passing.map { |c| c['CheckID'] }.join(',')} failed" if non_passing.any?
 
         return true if non_passing.empty?
 
