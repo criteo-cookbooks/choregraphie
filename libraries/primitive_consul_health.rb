@@ -33,7 +33,7 @@ module Choregraphie
         end
 
         relevant_checks = checks.select do |id, check|
-          @options[:checkids]&.include?(id) || @options[:services].include?(check['ServiceName'])
+          @options[:checkids]&.include?(id) || @options[:services]&.include?(check['ServiceName'])
         end.values
 
         @options[:checkids]&.each do |check_id|
