@@ -22,6 +22,7 @@ describe Choregraphie::After do
 
       context 'when a choregraphie starts' do
         it 'must mark its in progress state' do
+          allow(File).to receive(:exist?).with(/inprogress/).and_return(false)
           expect(FileUtils).to receive(:touch).with(/inprogress/)
           choregraphie.before.each(&:call)
         end
