@@ -24,6 +24,9 @@ module Choregraphie
 
     attr_reader :name, :resources
 
+    # @return [Array<Primitive>] the list of primitives registered by this choregraphie
+    attr_reader :primitives
+
     def clean_name
       name.gsub(/[^a-z]+/, '_')
     end
@@ -35,6 +38,8 @@ module Choregraphie
       @before = []
       @cleanup = []
       @finish = []
+      # list of primitive used by this choregraphie
+      @primitives = []
 
       # read all available primitives and make them available with a method
       # using their name. It allows to call `check_file '/tmp/titi'` to
@@ -43,6 +48,7 @@ module Choregraphie
         instance_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{klass.primitive_name}(*args, &block)
           primitive = ::#{klass}.new(*args, &block)
+          @primitives << primitive
           primitive.register(self)
         end
         METHOD

@@ -8,11 +8,10 @@ module Choregraphie
     end
 
     def register(choregraphie)
-      current_name = choregraphie.name
       choregraphie.before do |resource_name|
         raise 'ensure_choregraphie primitive cannot be used on other events than resource convergence!' unless resource_name
 
-        considered_choregraphies = ::Choregraphie::Choregraphie.all.reject { |c| c.name == current_name }
+        considered_choregraphies = ::Choregraphie::Choregraphie.all.reject { |c| c.primitives.any? { |p| p.instance_of?(EnsureChoregraphie) } }
         if considered_choregraphies.none? { |c| c.resources.include?(resource_name) }
           Chef::Log.warn "Resource #{resource_name} is about to converge but no choregraphie has been set " \
             "up to protect this, please touch file #{@file_path} if you want to converge anyway."

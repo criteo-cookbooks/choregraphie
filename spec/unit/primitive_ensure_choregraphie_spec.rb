@@ -1,7 +1,7 @@
 require_relative '../../libraries/primitive_ensure_choregraphie'
 
 describe Choregraphie::EnsureChoregraphie do
-  RSpec.shared_examples 'protects users' do
+  RSpec.shared_examples 'protects users' do |options|
     let(:fake_dispatcher) do
       Chef::EventDispatch::DSL.new('our own dispatcher')
     end
@@ -28,6 +28,13 @@ describe Choregraphie::EnsureChoregraphie do
       end
     end
 
+    let(:second_ensure_choregraphie) do
+      Choregraphie::Choregraphie.new('test') do
+        on 'my_resource_to_protect[name]'
+        ensure_choregraphie 'another_file', period: 0.01
+      end
+    end
+
     before do
       # in this block we prepare a bit the context in which choregraphie is executed without
       # create a real chef run (which would be to complex)
@@ -44,28 +51,23 @@ describe Choregraphie::EnsureChoregraphie do
       choregraphie # just make sure choregraphies are defined before we run the event handler
       unsafe_choregraphie
       safe_choregraphie
+      second_ensure_choregraphie
       # make sure "delayed listing of resources" is executed
       fake_dispatcher.handler.converge_start(run_context)
     end
 
     it 'must check file if resource is not protected by another choregraphie' do
-      expect(Choregraphie::Choregraphie).to receive(:all).and_return(
-        [
-          choregraphie,
-          unsafe_choregraphie
-        ],
-      )
+      choregraphies =  [choregraphie, unsafe_choregraphie]
+      choregraphies << second_ensure_choregraphie if options&.key?(:second_ensure_choregraphie)
+      expect(Choregraphie::Choregraphie).to receive(:all).and_return(choregraphies)
       expect(File).to receive(:exist?).with('unlock_choregraphie_file').and_return(true)
       choregraphie.before.each { |block| block.call 'my_resource_to_protect[name]' }
     end
 
     it 'must not check file if resource is protected' do
-      expect(Choregraphie::Choregraphie).to receive(:all).and_return(
-        [
-          choregraphie,
-          safe_choregraphie
-        ],
-      )
+      choregraphies =  [choregraphie, safe_choregraphie]
+      choregraphies << second_ensure_choregraphie if options&.key?(:second_ensure_choregraphie)
+      expect(Choregraphie::Choregraphie).to receive(:all).and_return(choregraphies)
       expect(File).to_not receive(:exist?).with('unlock_choregraphie_file')
       choregraphie.before.each { |block| block.call 'my_resource_to_protect[name]' }
     end
@@ -99,5 +101,10 @@ describe Choregraphie::EnsureChoregraphie do
       end
     end
     include_examples 'protects users'
+
+    context 'when there are multiple choregraphie using ensure_choregraphie' do
+      # because we really want to imagine strange edge cases :)
+      include_examples 'protects users', second_ensure_choregraphie: true
+    end
   end
 end
