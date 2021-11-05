@@ -27,12 +27,12 @@ module Choregraphie
     end
 
     def validate!(name, klass)
-      raise ArgumentError, "Missing #{name}" unless @options.has_key?(name)
+      raise ArgumentError, "Missing #{name}" unless @options.key?(name)
       raise ArgumentError, "Invalid #{name} (must be a #{klass})" unless @options[name].is_a?(klass)
     end
 
     def validate_optional!(name, klass)
-      raise ArgumentError, "Invalid #{name} (must be a #{klass})" if @options.has_key?(name) && !@options[name].is_a?(klass)
+      raise ArgumentError, "Invalid #{name} (must be a #{klass})" if @options.key?(name) && !@options[name].is_a?(klass)
     end
   end
 end

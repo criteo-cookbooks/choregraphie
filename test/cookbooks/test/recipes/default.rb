@@ -79,7 +79,7 @@ choregraphie 'execute' do
                  Chef::Log.warn('I am called before! for converge start')
                  'converge_start'
                else
-                 Chef::Log.warn('I am called before! for resource ' + resource.to_s)
+                 Chef::Log.warn("I am called before! for resource #{resource}")
                  resource.to_s.gsub(/\W+/, '_').gsub(/_$/, '')
                end
     File.open(::File.join(dir, filename), 'a') { |file| file.write("before\n") }

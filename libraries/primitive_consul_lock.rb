@@ -56,7 +56,7 @@ module Choregraphie
 
     def backoff(start_time, current_try)
       started = Time.now - start_time
-      Chef::Log.warn "Will sleep #{@options[:backoff]} between failures, current_try: #{current_try}, started #{human_duration(started)} ago" if (current_try % 100) == 0
+      Chef::Log.warn "Will sleep #{@options[:backoff]} between failures, current_try: #{current_try}, started #{human_duration(started)} ago" if (current_try % 100).zero?
       sleep @options[:backoff]
       false # indicates failure
     end
@@ -123,7 +123,7 @@ module Choregraphie
       rescue Diplomat::KeyNotFound
         Chef::Log.info "Lock for #{path} did not exist, creating with value #{value}"
         Diplomat::Kv.put(path, value.to_json, cas: 0, dc: dc, token: token) # we ignore success/failure of CaS
-        (retry_left -= 1) > 0 ? retry : raise
+        (retry_left -= 1).positive? ? retry : raise
       end.first
       desired_lock = bootstrap_lock(value, current_lock)
       new(path, desired_lock, dc, token: token)
@@ -148,7 +148,7 @@ module Choregraphie
 
     def already_entered?(opts)
       name = opts[:name] # this is the server id
-      holders.has_key?(name.to_s) # lock is re-entrant
+      holders.key?(name.to_s) # lock is re-entrant
     end
 
     def can_enter_lock?(_opts)

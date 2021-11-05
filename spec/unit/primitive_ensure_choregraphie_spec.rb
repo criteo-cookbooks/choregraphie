@@ -33,6 +33,6 @@ describe Choregraphie::EnsureChoregraphie do
   it 'must clean the file in cleanup' do
     expect(File).to receive(:exist?).and_return(true)
     expect(FileUtils).to receive(:rm).with('random')
-    choregraphie.cleanup.each { |block| block.call }
+    choregraphie.cleanup.each(&:call)
   end
 end

@@ -6,14 +6,16 @@ describe Choregraphie::SemaphoreByRack do
   SemaphoreByRack = Choregraphie::SemaphoreByRack
 
   # erase Chef::Log output
-  class Chef::Log
-    def self.info(_); end
+  module Chef
+    class Log
+      def self.info(_); end
 
-    def self.warn(_); end
+      def self.warn(_); end
 
-    def self.error(_); end
+      def self.error(_); end
 
-    def self.debug(_); end
+      def self.debug(_); end
+    end
   end
 
   let(:value) do

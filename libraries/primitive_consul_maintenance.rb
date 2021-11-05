@@ -13,7 +13,7 @@ module Choregraphie
 
       validate_optional!(:service_id, String) # id of the service to put in maintenance
 
-      @maintenance_key = if @options.has_key?(:service_id)
+      @maintenance_key = if @options.key?(:service_id)
                            "_service_maintenance:#{@options[:service_id]}"
                          else
                            '_node_maintenance'
@@ -31,7 +31,7 @@ module Choregraphie
 
     def maintenance(enable = true)
       token = @options[:consul_token]
-      if @options.has_key?(:service_id)
+      if @options.key?(:service_id)
         Diplomat::Service.maintenance(@options[:service_id], { enable: enable, reason: @options[:reason], token: token })
       else
         Diplomat::Maintenance.enable(enable, @options[:reason], { token: token })

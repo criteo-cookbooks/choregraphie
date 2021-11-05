@@ -25,7 +25,7 @@ describe Choregraphie::ConsulLock do
 
         expect(SemaphoreByRack).to receive(:get_or_create).and_return(*([failing_lock] * fails + [lock]))
 
-        choregraphie.before.each { |block| block.call }
+        choregraphie.before.each(&:call)
       end
 
       it 'must exit the lock' do
@@ -36,7 +36,7 @@ describe Choregraphie::ConsulLock do
 
         expect(SemaphoreByRack).to receive(:get_or_create).and_return(*([failing_lock] * fails + [lock]))
 
-        choregraphie.finish.each { |block| block.call }
+        choregraphie.finish.each(&:call)
       end
     end
   end

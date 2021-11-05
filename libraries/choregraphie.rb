@@ -58,8 +58,8 @@ module Choregraphie
         # and we don't want to cleanup just before the reboot
         on :converge_complete do
           Chef::Log.debug 'Chef-client convergence successful, will clean up all primitives'
-          cleanup_events.each { |b| b.call }
-          finish_events.each { |b| b.call }
+          cleanup_events.each(&:call)
+          finish_events.each(&:call)
         end
       end
 
@@ -187,7 +187,7 @@ module Choregraphie
         # all resources whose weight is non-zero is protected by default
         weight_threshold = opts[:threshold] || 0
         on_each_resource do |resource, choregraphie|
-          if resource.class.properties.has_key?(:weight)
+          if resource.class.properties.key?(:weight)
             next if resource.weight <= weight_threshold
 
             Chef::Log.debug "Will create a dynamic recipe for #{resource}"
@@ -203,7 +203,7 @@ module Choregraphie
         Chef.event_handler do
           on :converge_start do
             Chef::Log.info 'Chef client starting to converge, running before callbacks.'
-            before_events.call.each { |b| b.call }
+            before_events.call.each(&:call)
           end
         end
       else

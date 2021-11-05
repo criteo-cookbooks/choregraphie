@@ -26,7 +26,7 @@ describe Choregraphie::ConsulLock do
 
         expect(Semaphore).to receive(:get_or_create).and_return(*([failing_lock] * fails + [lock]))
 
-        choregraphie.before.each { |block| block.call }
+        choregraphie.before.each(&:call)
       end
 
       it 'must exit the lock' do
@@ -37,7 +37,7 @@ describe Choregraphie::ConsulLock do
 
         expect(Semaphore).to receive(:get_or_create).and_return(*([failing_lock] * fails + [lock]))
 
-        choregraphie.finish.each { |block| block.call }
+        choregraphie.finish.each(&:call)
       end
     end
   end
@@ -64,7 +64,7 @@ describe Choregraphie::ConsulLock do
 
       expect(Semaphore).to receive(:get_or_create).with('chef_lock/test', 3, dc: nil, token: nil).and_return(lock)
 
-      choregraphie_service.before.each { |block| block.call }
+      choregraphie_service.before.each(&:call)
     end
   end
 end

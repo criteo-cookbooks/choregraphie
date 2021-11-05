@@ -12,21 +12,21 @@ describe Choregraphie::ConsulMaintenance do
     it 'Must enable maintenance mode before' do
       stub_request(:get, 'localhost:8500/v1/agent/checks').to_return(status: 200, body: '{}')
       expect(Diplomat::Maintenance).to receive(:enable).with(true, 'Testing', { 'token': 'foo' }).and_return(true)
-      choregraphie.before.each { |block| block.call }
+      choregraphie.before.each(&:call)
     end
 
     it 'Must disable maintenance mode in cleanup' do
       stub_request(:get, 'localhost:8500/v1/agent/checks')
         .to_return(status: 200, body: '{"_node_maintenance": {"CheckID": "_node_maintenance", "Status": "critical", "Notes": "Testing"}}')
       expect(Diplomat::Maintenance).to receive(:enable).with(false, 'Testing', { 'token': 'foo' }).and_return(true)
-      choregraphie.cleanup.each { |block| block.call }
+      choregraphie.cleanup.each(&:call)
     end
 
     it 'Must not disable maintenance mode in cleanup if enabled for other reasons' do
       stub_request(:get, 'localhost:8500/v1/agent/checks')
         .to_return(status: 200, body: '{"_node_maintenance": {"CheckID": "_node_maintenance", "Status": "critical", "Notes": "for reasons..."}}')
       expect(Diplomat::Maintenance).to_not receive(:enable)
-      choregraphie.cleanup.each { |block| block.call }
+      choregraphie.cleanup.each(&:call)
     end
 
     # it 'Must not disable maintenance mode in cleanup if not enabled' do
@@ -47,7 +47,7 @@ describe Choregraphie::ConsulMaintenance do
     it 'Must enable maintenance mode before' do
       stub_request(:get, 'localhost:8500/v1/agent/checks').to_return(status: 200, body: '{}')
       expect(Diplomat::Service).to receive(:maintenance).with(service_id, { 'enable': true, 'reason': 'Testing', 'token': 'foo' }).and_return(true)
-      choregraphie.before.each { |block| block.call }
+      choregraphie.before.each(&:call)
     end
 
     it 'Must disable maintenance mode in cleanup' do
@@ -57,7 +57,7 @@ describe Choregraphie::ConsulMaintenance do
 \"Notes\": \"Testing\",\"Output\": \"\",\"ServiceID\": \"#{service_id}\",\"ServiceName\": \"#{service_id}\",\"ServiceTags\": [],
 \"Definition\": {},\"CreateIndex\": 0,\"ModifyIndex\": 0}}",)
       expect(Diplomat::Service).to receive(:maintenance).with(service_id, { 'enable': false, 'reason': 'Testing', 'token': 'foo' }).and_return(true)
-      choregraphie.cleanup.each { |block| block.call }
+      choregraphie.cleanup.each(&:call)
     end
 
     it 'Must not disable maintenance mode in cleanup if enabled for other reasons' do
@@ -67,7 +67,7 @@ describe Choregraphie::ConsulMaintenance do
 \"Notes\": \"Some other reason...\",\"Output\": \"\",\"ServiceID\": \"#{service_id}\",\"ServiceName\": \"#{service_id}\",\"ServiceTags\": [],
 \"Definition\": {},\"CreateIndex\": 0,\"ModifyIndex\": 0}}",)
       expect(Diplomat::Service).to_not receive(:maintenance)
-      choregraphie.cleanup.each { |block| block.call }
+      choregraphie.cleanup.each(&:call)
     end
   end
 end
