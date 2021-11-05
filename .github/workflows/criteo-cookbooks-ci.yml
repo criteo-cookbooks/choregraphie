@@ -1,0 +1,51 @@
+# This is a basic workflow to help you get started with Actions
+name: Criteo Cookbooks CI
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+jobs:
+  rspec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.5
+          bundler-cache: true
+      - run: bundle exec rubocop --version
+      - run: bundle exec rubocop
+      - run: bundle exec foodcritic --version
+      - run: bundle exec foodcritic . --exclude spec -f any
+      - run: bundle exec rspec
+  kitchen:
+    needs: [rspec]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        instance: ['default-centos-7', 'default-ubuntu-1604', 'default-fedora-29']
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.5
+          bundler-cache: true
+      - run: KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen verify ${{ matrix.instance }}
+  supermarket:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [kitchen]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Publish to supermarket
+      uses: afaundez/chef-supermarket-action@8cdbe1cccbe1ecd8685b2ea8f48780135bae7cee
+      with:
+        user: criteo
+        cookbook: nexus3
+        category: Utilities
+      env:
+        SUPERMARKET_API_KEY: ${{ secrets.SUPERMARKET_API_KEY }}
