@@ -7,7 +7,7 @@ require 'json'
 # It allows to support the unavailability of the local consul agent (for reboot, reinstall, ...)
 module Choregraphie
   class ConsulLock < Primitive
-    def initialize(options = {}, &block)
+    def initialize(options = {})
       @options = Mash.new(options)
 
       # path in consul (name_of_the_lock)
@@ -15,9 +15,7 @@ module Choregraphie
       # id of this node
       validate!(:id, String)
 
-      if @options[:concurrency] && @options[:service]
-        raise ArgumentError, "You can't set both concurrency and service"
-      end
+      raise ArgumentError, "You can't set both concurrency and service" if @options[:concurrency] && @options[:service]
 
       @options[:backoff] ||= 5 # seconds
 
@@ -28,8 +26,7 @@ module Choregraphie
     end
 
     def concurrency
-      @concurrency ||= case
-                       when @options[:service]
+      @concurrency ||= if @options[:service]
                          require 'diplomat'
                          opts = @options[:service][:options] || {}
                          opts[:dc] = @options[:datacenter] if @options[:datacenter]
@@ -37,11 +34,11 @@ module Choregraphie
                          total = Diplomat::Service.get(
                            @options[:service][:name],
                            :all,
-                           opts
+                           opts,
                          ).count
                          # TODO: check only passing instances
-                         [1,(@options[:service][:concurrency_ratio] * total).to_i].max
-                       when @options[:concurrency]
+                         [1, (@options[:service][:concurrency_ratio] * total).to_i].max
+                       elsif @options[:concurrency]
                          @options[:concurrency]
                        else
                          1
@@ -66,10 +63,10 @@ module Choregraphie
 
     def human_duration(duration_in_secs)
       s = ''
-      s += "#{duration_in_secs / 86400} days, " if duration_in_secs > 86400
-      s += "#{format('%02d', duration_in_secs % 86400 / 3600)}h " if duration_in_secs > 3600
-      s += "#{format('%02d', duration_in_secs % 3600 / 60)}m " if duration_in_secs > 60
-      s += "#{format('%02d', duration_in_secs % 60)}s"
+      s += "#{duration_in_secs / 86_400} days, " if duration_in_secs > 86_400
+      s += "#{'%02d' % (duration_in_secs % 86_400 / 3600)}h " if duration_in_secs > 3600
+      s += "#{'%02d' % (duration_in_secs % 3600 / 60)}m " if duration_in_secs > 60
+      s += "#{'%02d' % (duration_in_secs % 60)}s"
       s
     end
 
@@ -78,13 +75,11 @@ module Choregraphie
       Chef::Log.info "Will #{action} the lock #{path} #{dc}"
       start = Time.now
       success = 0.upto(opts[:max_failures] || Float::INFINITY).any? do |tries|
-        begin
-          yield(start, tries) || backoff(start, tries)
-        rescue => e
-          Chef::Log.warn "Error while #{action}-ing lock"
-          Chef::Log.warn e
-          backoff(start, tries)
-        end
+        yield(start, tries) || backoff(start, tries)
+      rescue StandardError => e
+        Chef::Log.warn "Error while #{action}-ing lock"
+        Chef::Log.warn e
+        backoff(start, tries)
       end
 
       if success
@@ -92,17 +87,15 @@ module Choregraphie
       else
         Chef::Log.warn "Will ignore errors and since we've reached #{opts[:max_failures]} errors"
       end
-
     end
 
     def register(choregraphie)
-
       choregraphie.before do
         wait_until(:enter) { semaphore.enter(name: @options[:id]) }
       end
 
       choregraphie.finish do
-        # hack: We can ignore failure there since it is only to release
+        # HACK: We can ignore failure there since it is only to release
         # the lock. If there is a temporary failure, we can wait for the
         # next run to release the lock without compromising safety.
         # The reason we have to be a bit more relaxed here, is that all
@@ -115,25 +108,23 @@ module Choregraphie
     private
 
     def path
-      @options[:path].sub(/^\//,'')
+      @options[:path].sub(%r{^/}, '')
     end
-
   end
 
   class Semaphore
-
     def self.get_or_create(path, concurrency, dc: nil, token: nil)
       require 'diplomat'
       retry_left = 5
-      value =  Mash.new({ version: 1, concurrency: concurrency, holders: {} })
+      value = Mash.new({ version: 1, concurrency: concurrency, holders: {} })
       current_lock = begin
-                       Chef::Log.info "Fetch lock state for #{path}"
-                       Diplomat::Kv.get(path, decode_values: true, dc: dc, token: token)
-                     rescue Diplomat::KeyNotFound
-                       Chef::Log.info "Lock for #{path} did not exist, creating with value #{value}"
-                       Diplomat::Kv.put(path, value.to_json, cas: 0, dc: dc, token: token) # we ignore success/failure of CaS
-                       (retry_left -= 1) > 0 ? retry : raise
-                     end.first
+        Chef::Log.info "Fetch lock state for #{path}"
+        Diplomat::Kv.get(path, decode_values: true, dc: dc, token: token)
+      rescue Diplomat::KeyNotFound
+        Chef::Log.info "Lock for #{path} did not exist, creating with value #{value}"
+        Diplomat::Kv.put(path, value.to_json, cas: 0, dc: dc, token: token) # we ignore success/failure of CaS
+        (retry_left -= 1) > 0 ? retry : raise
+      end.first
       desired_lock = bootstrap_lock(value, current_lock)
       new(path, desired_lock, dc, token: token)
     end
@@ -160,7 +151,7 @@ module Choregraphie
       holders.has_key?(name.to_s) # lock is re-entrant
     end
 
-    def can_enter_lock?(opts)
+    def can_enter_lock?(_opts)
       holders.size < concurrency
     end
 
@@ -171,11 +162,12 @@ module Choregraphie
 
     def enter(opts)
       return true if already_entered?(opts)
+
       if can_enter_lock?(opts)
         enter_lock(opts)
         require 'diplomat'
         result = Diplomat::Kv.put(@path, to_json, cas: @cas, dc: @dc, token: @token)
-        Chef::Log.debug("Someone updated the lock at the same time, will retry") unless result
+        Chef::Log.debug('Someone updated the lock at the same time, will retry') unless result
         result
       else
         Chef::Log.debug("Too many lock holders (concurrency:#{concurrency})")
@@ -193,7 +185,7 @@ module Choregraphie
         exit_lock(opts)
         require 'diplomat'
         result = Diplomat::Kv.put(@path, to_json, cas: @cas, dc: @dc, token: @token)
-        Chef::Log.debug("Someone updated the lock at the same time, will retry") unless result
+        Chef::Log.debug('Someone updated the lock at the same time, will retry') unless result
         result
       else
         true
@@ -202,7 +194,7 @@ module Choregraphie
 
     private
 
-    def to_json
+    def to_json(*_args)
       @h.to_json
     end
 

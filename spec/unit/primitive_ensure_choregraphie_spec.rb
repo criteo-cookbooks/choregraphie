@@ -14,22 +14,24 @@ describe Choregraphie::EnsureChoregraphie do
   it 'must check file if resource is not protected' do
     expect(Choregraphie::Choregraphie).to receive(:all).and_return(
       [
-        double(name: 'toto', resources: ['toto[name]']),
-      ])
-    expect(File).to receive(:exists?).with('random').and_return(true)
+        double(name: 'toto', resources: ['toto[name]'])
+      ],
+    )
+    expect(File).to receive(:exist?).with('random').and_return(true)
     choregraphie.before.each { |block| block.call 'test[name]' }
   end
   it 'must not check file if resource is protected' do
     expect(Choregraphie::Choregraphie).to receive(:all).and_return(
       [
         double(name: 'test', resources: ['test[name]']),
-        double(name: 'toto', resources: ['toto[name]']),
-      ])
-    expect(File).to_not receive(:exists?).with('random')
+        double(name: 'toto', resources: ['toto[name]'])
+      ],
+    )
+    expect(File).to_not receive(:exist?).with('random')
     choregraphie.before.each { |block| block.call 'test[name]' }
   end
   it 'must clean the file in cleanup' do
-    expect(File).to receive(:exists?).and_return(true)
+    expect(File).to receive(:exist?).and_return(true)
     expect(FileUtils).to receive(:rm).with('random')
     choregraphie.cleanup.each { |block| block.call }
   end

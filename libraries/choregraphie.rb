@@ -6,7 +6,6 @@ require 'chef/provider'
 
 module Choregraphie
   class Choregraphie
-
     @@choregraphies = {}
 
     def self.all
@@ -23,8 +22,7 @@ module Choregraphie
       @@choregraphies.clear
     end
 
-    attr_reader :name
-    attr_reader :resources
+    attr_reader :name, :resources
 
     def clean_name
       name.gsub(/[^a-z]+/, '_')
@@ -42,7 +40,7 @@ module Choregraphie
       # using their name. It allows to call `check_file '/tmp/titi'` to
       # instantiate the CheckFile primitive
       Primitive.all.each do |klass|
-        instance_eval <<-EOM
+        instance_eval <<-EOM, __FILE__, __LINE__ + 1
         def #{klass.primitive_name}(*args, &block)
           primitive = ::#{klass}.new(*args, &block)
           primitive.register(self)
@@ -59,7 +57,7 @@ module Choregraphie
         # resources do not make the run fail
         # and we don't want to cleanup just before the reboot
         on :converge_complete do
-          Chef::Log.debug "Chef-client convergence successful, will clean up all primitives"
+          Chef::Log.debug 'Chef-client convergence successful, will clean up all primitives'
           cleanup_events.each { |b| b.call }
           finish_events.each { |b| b.call }
         end
@@ -67,8 +65,8 @@ module Choregraphie
 
       # this + method_missing allows to access method defined outside of the
       # block (in the recipe context for instance)
-      @self_before_instance_eval = eval "self", block.binding
-      instance_eval &block
+      @self_before_instance_eval = eval 'self', block.binding, __FILE__, __LINE__
+      instance_eval(&block)
     end
 
     def method_missing(method, *args, &block)
@@ -78,9 +76,11 @@ module Choregraphie
     def cleanup_block_name(resource_name)
       "Cleanup callbacks for #{name}/#{resource_name}"
     end
+
     def before_block_name(resource_name)
       "Before callbacks for #{name}/#{resource_name}"
     end
+
     def finish_block_name(resource_name)
       "Terminate callbacks for #{name}/#{resource_name}"
     end
@@ -104,7 +104,8 @@ module Choregraphie
     def finish(&block)
       if block
         Chef::Log.debug("Registering a finish block for #{name}")
-        raise " A finish block already registered" unless @finish.empty?
+        raise ' A finish block already registered' unless @finish.empty?
+
         @finish << block
       end
       @finish
@@ -128,16 +129,16 @@ module Choregraphie
         end
       end
       if resource
-        resource.allowed_actions.
-          reject { |a| a == :nothing }.
-          each do |a|
-            provider = resource.provider_for_action(a)
-            unless provider.whyrun_supported?
-              Chef::Log.warn "Resource providers must support whyrun in order to be used by choregraphie"
-              Chef::Log.warn "If you are defining a custom resource see https://github.com/chef/chef/issues/4537 for a possible workaround"
-              raise "Provider for #{a} on #{resource.declared_key} must support whyrun"
-            end
-          end
+        resource.allowed_actions
+                .reject { |a| a == :nothing }
+                .each do |a|
+          provider = resource.provider_for_action(a)
+          next if provider.whyrun_supported?
+
+          Chef::Log.warn 'Resource providers must support whyrun in order to be used by choregraphie'
+          Chef::Log.warn 'If you are defining a custom resource see https://github.com/chef/chef/issues/4537 for a possible workaround'
+          raise "Provider for #{a} on #{resource.declared_key} must support whyrun"
+        end
       else
         Chef::Log.warn "#{resource_name} is not yet defined ?"
       end
@@ -165,7 +166,6 @@ module Choregraphie
       end
     end
 
-
     def on(event, opts = {})
       opts = Mash.new(opts)
       Chef::Log.info("Registering on #{event} for #{name}")
@@ -177,6 +177,7 @@ module Choregraphie
       when Regexp
         on_each_resource do |resource, choregraphie|
           next unless resource.declared_key =~ event
+
           Chef::Log.debug "Will create a dynamic recipe for #{resource}"
           Chef::Recipe.new(:choregraphie, "dynamic_recipe_for_#{resource.declared_key}_#{clean_name}", run_context).instance_eval do
             choregraphie.setup_hook(resource.declared_key, opts)
@@ -188,6 +189,7 @@ module Choregraphie
         on_each_resource do |resource, choregraphie|
           if resource.class.properties.has_key?(:weight)
             next if resource.weight <= weight_threshold
+
             Chef::Log.debug "Will create a dynamic recipe for #{resource}"
             Chef::Recipe.new(:choregraphie, "dynamic_recipe_for_#{resource.declared_key}_#{clean_name}", run_context).instance_eval do
               choregraphie.setup_hook(resource.declared_key, opts)
@@ -200,13 +202,13 @@ module Choregraphie
         before_events = method(:before)
         Chef.event_handler do
           on :converge_start do
-            Chef::Log.info "Chef client starting to converge, running before callbacks."
+            Chef::Log.info 'Chef client starting to converge, running before callbacks.'
             before_events.call.each { |b| b.call }
           end
         end
       else
         # TODO
-        raise "Symbol types are not yet supported"
+        raise 'Symbol types are not yet supported'
       end
     end
 
@@ -225,10 +227,9 @@ module Choregraphie
         end
       end
     end
-
   end
 end
 
-Chef::Recipe.send(:include, Choregraphie::DSL)
-Chef::Resource.send(:include, Choregraphie::DSL)
-Chef::Provider.send(:include, Choregraphie::DSL)
+Chef::Recipe.include Choregraphie::DSL
+Chef::Resource.include Choregraphie::DSL
+Chef::Provider.include Choregraphie::DSL

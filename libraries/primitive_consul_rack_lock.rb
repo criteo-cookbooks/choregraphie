@@ -37,7 +37,6 @@ module Choregraphie
   end
 
   class SemaphoreByRack < Semaphore
-
     def already_entered?(opts)
       name, server = validate_and_split!(opts)
       super && holders[name.to_s].key?(server.to_s)
@@ -69,6 +68,7 @@ module Choregraphie
     def validate_and_split!(opts)
       raise 'Must have a :name entry filled with rack identifier' unless opts[:name] && !opts[:name].empty?
       raise 'Must have a :server entry filled with server identifier' unless opts[:server] && !opts[:server].empty?
+
       [opts[:name], opts[:server]]
     end
   end

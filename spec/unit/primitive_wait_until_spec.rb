@@ -1,7 +1,6 @@
 require_relative '../../libraries/primitive_wait_until'
 
 describe Choregraphie::WaitUntil do
-
   let(:environment) do
     double('env').tap do |dble|
       expect(dble).to receive(:[]=).with('RESOURCE_NAME', kind_of(String)).at_least(:once)
@@ -33,7 +32,7 @@ describe Choregraphie::WaitUntil do
   context 'when the condition is a string at cleanup' do
     let(:choregraphie) do
       Choregraphie::Choregraphie.new('test') do
-        wait_until 'command', period: 0.001,when: 'cleanup'
+        wait_until 'command', period: 0.001, when: 'cleanup'
       end
     end
 
@@ -48,7 +47,6 @@ describe Choregraphie::WaitUntil do
     end
   end
   context 'when the condition is a shellout' do
-
     let(:shellout) do
       double('shellout', run_command: true, cmd: 'some_command').tap do |dble|
         mock_env(dble)
@@ -71,7 +69,6 @@ describe Choregraphie::WaitUntil do
   end
 
   context 'when the condition is a shellout at cleanup' do
-
     let(:shellout) do
       double('shellout', run_command: true, cmd: 'some_command').tap do |dble|
         mock_env(dble)
@@ -94,7 +91,6 @@ describe Choregraphie::WaitUntil do
   end
 
   context 'when the condition is a block' do
-
     let(:choregraphie) do
       should_fail = true
       Choregraphie::Choregraphie.new('test') do
@@ -114,7 +110,6 @@ describe Choregraphie::WaitUntil do
     end
   end
   context 'when the condition is a block at cleanup' do
-
     let(:choregraphie) do
       should_fail = true
       Choregraphie::Choregraphie.new('test') do
