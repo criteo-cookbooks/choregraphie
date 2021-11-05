@@ -29,7 +29,7 @@ module Choregraphie
       maint_status == 'critical' && checks.dig(@maintenance_key, 'Notes')
     end
 
-    def maintenance(enable = true)
+    def maintenance(enable = true) # rubocop:disable Style/OptionalBooleanParameter
       token = @options[:consul_token]
       if @options.key?(:service_id)
         Diplomat::Service.maintenance(@options[:service_id], { enable: enable, reason: @options[:reason], token: token })
@@ -55,7 +55,8 @@ module Choregraphie
             Chef::Log.info "Consul maintenance will be disabled (reason: #{maint_notes})."
             maintenance(false)
           else
-            Chef::Log.warn "Consul maintenance was enabled by something other than this choregraphie (reason: #{maint_notes}, expected_reason: #{@options[:reason]}). So we won't disable it."
+            Chef::Log.warn "Consul maintenance was enabled by something other than this choregraphie " \
+            "(reason: #{maint_notes}, expected_reason: #{@options[:reason]}). So we won't disable it."
           end
         end
       end

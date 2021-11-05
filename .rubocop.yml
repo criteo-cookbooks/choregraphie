@@ -30,7 +30,7 @@ Style/TrailingCommaInArguments:
 
 Metrics/BlockLength:
   Max: 60
-  Excludes:
+  Exclude:
     - spec/**/*
 
 Style/StringLiterals:
@@ -49,3 +49,25 @@ Style/FileName:
 Lint/ConstantDefinitionInBlock:
   Exclude:
     - spec/**/*
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Lint/MissingSuper:
+  Enabled: false
+
+Naming/MethodParameterName:
+  AllowedNames:
+    - dc
+
+Metrics/ClassLength:
+  Enabled: false
+
+Style/ClassVars:
+  Enabled: false

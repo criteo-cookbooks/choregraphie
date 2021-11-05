@@ -40,12 +40,12 @@ module Choregraphie
       # using their name. It allows to call `check_file '/tmp/titi'` to
       # instantiate the CheckFile primitive
       Primitive.all.each do |klass|
-        instance_eval <<-EOM, __FILE__, __LINE__ + 1
+        instance_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{klass.primitive_name}(*args, &block)
           primitive = ::#{klass}.new(*args, &block)
           primitive.register(self)
         end
-        EOM
+        METHOD
       end
 
       # bind cleanup in local context to access it in event_handler
@@ -69,7 +69,7 @@ module Choregraphie
       instance_eval(&block)
     end
 
-    def method_missing(method, *args, &block)
+    def method_missing(method, *args, &block) # rubocop:disable Style/MissingRespondToMissing
       @self_before_instance_eval.send method, *args, &block
     end
 
@@ -116,12 +116,13 @@ module Choregraphie
       begin
         resource = run_context.resource_collection.find(resource_name)
       rescue Chef::Exceptions::ResourceNotFound
-        if ignore_missing_resource
+        if ignore_missing_resource # rubocop:disable Style/GuardClause
           # some resources are defined only when used
           # so we ignore them
           return
         elsif resource_name =~ /,/
-          Chef::Log.warn "#{resource_name} contains a comma which triggers https://github.com/criteo-cookbooks/choregraphie/issues/43, we can't check if resource supports why run or not"
+          Chef::Log.warn "#{resource_name} contains a comma which triggers " \
+            "https://github.com/criteo-cookbooks/choregraphie/issues/43, we can't check if resource supports why run or not"
           resource = run_context.resource_collection.map(&:itself).find { |r| r.declared_key == resource_name }
           raise Chef::Exceptions::ResourceNotFound unless resource
         else
@@ -187,7 +188,7 @@ module Choregraphie
         # all resources whose weight is non-zero is protected by default
         weight_threshold = opts[:threshold] || 0
         on_each_resource do |resource, choregraphie|
-          if resource.class.properties.key?(:weight)
+          if resource.class.properties.key?(:weight) # rubocop:disable Style/GuardClause
             next if resource.weight <= weight_threshold
 
             Chef::Log.debug "Will create a dynamic recipe for #{resource}"

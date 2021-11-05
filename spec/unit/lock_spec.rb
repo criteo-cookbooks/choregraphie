@@ -25,9 +25,9 @@ describe Choregraphie::Semaphore do
   let(:existing_response) do
     {
       status: 200,
-      body: <<-EOH
+      body: <<-JSON
       [{"Value": "#{value}", "ModifyIndex": 1, "CreateIndex": 1, "LockIndex": 0, "Key": "chef_lock/test", "Flags": 0}]
-      EOH
+      JSON
     }
   end
 

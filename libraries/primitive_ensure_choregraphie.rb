@@ -14,7 +14,8 @@ module Choregraphie
 
         considered_choregraphies = ::Choregraphie::Choregraphie.all.reject { |c| c.name == current_name }
         if considered_choregraphies.none? { |c| c.resources.include?(resource_name) }
-          Chef::Log.warn "Resource #{resource_name} is about to converge but no choregraphie has been set up to protect this, please touch file #{@file_path} if you want to converge anyway."
+          Chef::Log.warn "Resource #{resource_name} is about to converge but no choregraphie has been set " \
+            "up to protect this, please touch file #{@file_path} if you want to converge anyway."
           sleep(@period) until ::File.exist?(@file_path)
         end
       end
