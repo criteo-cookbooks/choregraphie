@@ -6,7 +6,7 @@ describe Choregraphie::Semaphore do
   Semaphore = Choregraphie::Semaphore
 
   # erase Chef::Log output
-  module Chef
+  class Chef
     class Log
       def self.info(_); end
 

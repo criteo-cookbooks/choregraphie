@@ -30,6 +30,8 @@ Style/TrailingCommaInArguments:
 
 Metrics/BlockLength:
   Max: 60
+  Excludes:
+    - spec/**/*
 
 Style/StringLiterals:
   ConsistentQuotesInMultiline: true
@@ -43,3 +45,7 @@ Style/MultilineBlockChain:
 
 Style/FileName:
   Enabled: false
+
+Lint/ConstantDefinitionInBlock:
+  Exclude:
+    - spec/**/*

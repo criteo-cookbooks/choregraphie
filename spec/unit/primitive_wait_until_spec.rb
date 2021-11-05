@@ -20,7 +20,6 @@ describe Choregraphie::WaitUntil do
 
     it 'must wait for the condition to be true' do
       cmd = double('nothing', run_command: true)
-      must_raise = true
       expect(Mixlib::ShellOut).to receive(:new).and_return(cmd)
       mock_env(cmd)
       expect(cmd).to receive(:error?).twice.and_return(true, false)
@@ -38,7 +37,6 @@ describe Choregraphie::WaitUntil do
 
     it 'must wait for the condition to be true' do
       cmd = double('nothing', run_command: true)
-      must_raise = true
       expect(Mixlib::ShellOut).to receive(:new).and_return(cmd)
       mock_env(cmd)
       expect(cmd).to receive(:error?).twice.and_return(true, false)
@@ -62,7 +60,6 @@ describe Choregraphie::WaitUntil do
     it 'must wait for the condition to be true at before' do
       allow(Mixlib::ShellOut).to receive(:===).with(shellout).and_return(true)
 
-      must_raise = true
       expect(shellout).to receive(:error?).twice.and_return(true, false)
       choregraphie.before.each { |block| block.call('a resource name') }
     end
@@ -84,7 +81,6 @@ describe Choregraphie::WaitUntil do
     it 'must wait for the condition to be true at cleanup' do
       allow(Mixlib::ShellOut).to receive(:===).with(shellout).and_return(true)
 
-      must_raise = true
       expect(shellout).to receive(:error?).twice.and_return(true, false)
       choregraphie.cleanup.each { |block| block.call('a resource name') }
     end
