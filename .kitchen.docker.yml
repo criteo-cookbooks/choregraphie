@@ -1,0 +1,42 @@
+# Usage: KITCHEN_YAML=.kitchen.docker.yml bundle exec kitchen list
+---
+driver:
+  name: dokken
+  chef_version: 14.7.17
+  privileged: true # because Docker and SystemD/Upstart
+
+transport:
+  name: dokken
+
+provisioner:
+  name: dokken
+
+verifier:
+  name: busser
+
+platforms:
+- name: centos-7
+  driver:
+    image: centos:7
+    intermediate_instructions:
+      - RUN yum clean all
+    pid_one_command: /usr/lib/systemd/systemd
+
+- name: fedora-29
+  driver:
+    image: fedora:29
+    intermediate_instructions:
+    - RUN yum clean all
+    pid_one_command: /usr/lib/systemd/systemd
+
+- name: ubuntu-16.04
+  driver:
+    image: ubuntu:16.04
+    pid_one_command: /bin/systemd
+    intermediate_instructions:
+      - RUN /usr/bin/apt-get update
+
+suites:
+- name: default
+  run_list:
+    - recipe[test]

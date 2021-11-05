@@ -5,8 +5,10 @@ gem 'chef'
 gem 'chefspec', '< 7.3.0'
 gem 'chef-zero-scheduled-task'
 gem 'foodcritic'
+gem 'kitchen-dokken'
 gem 'kitchen-vagrant'
 gem 'rake'
+gem 'serverspec'
 
 gem 'kitchen-transport-speedy'
 group :ec2 do
