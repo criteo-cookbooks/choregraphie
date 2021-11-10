@@ -5,7 +5,7 @@
 # Copyright (c) 2016 The Authors, All Rights Reserved.
 
 require 'tmpdir'
-dir = Dir.tmpdir()
+dir = Dir.tmpdir
 
 directory dir
 
@@ -38,8 +38,8 @@ test_simple_resource 'not_converging' do
   only_if { false }
 end
 
-log "a_simple_log"
-log "another_log"
+log 'a_simple_log'
+log 'another_log'
 
 custom_resource 'my converging custom resource'
 
@@ -67,32 +67,32 @@ choregraphie 'execute' do
   on 'test_simple_resource[not_converging]'
   on 'custom_resource[my converging custom resource]'
   on 'custom_resource[my useless custom resource]'
-  on /execute\[name with a,/
+  on(/execute\[name with a,/)
 
-  on /^log\[/
+  on(/^log\[/)
 
   on :weighted_resources
   on :converge_start
 
   before do |resource|
     filename = if resource.nil?
-                 Chef::Log.warn("I am called before! for converge start")
+                 Chef::Log.warn('I am called before! for converge start')
                  'converge_start'
                else
-                 Chef::Log.warn("I am called before! for resource " + resource.to_s)
-                 resource.to_s.gsub(/\W+/, '_').gsub(/_$/,'')
+                 Chef::Log.warn("I am called before! for resource #{resource}")
+                 resource.to_s.gsub(/\W+/, '_').gsub(/_$/, '')
                end
     File.open(::File.join(dir, filename), 'a') { |file| file.write("before\n") }
   end
   cleanup do |resource|
     Chef::Log.warn('I am called at cleanup for cleanup block')
-    text = resource.to_s.gsub(/\W+/, '_').gsub(/_$/,'')
+    text = resource.to_s.gsub(/\W+/, '_').gsub(/_$/, '')
     File.open(::File.join(dir, 'cleanup'), 'a') { |file| file.write("#{text}\n") }
   end
   finish do
     Chef::Log.warn('I am called at finish block')
-    File.open(::File.join(dir, 'cleanup'), 'a') { |file| file.write("finish") }
+    File.open(::File.join(dir, 'cleanup'), 'a') { |file| file.write('finish') }
   end
 end
 
-log "a_log_defined_after_choregraphie"
+log 'a_log_defined_after_choregraphie'

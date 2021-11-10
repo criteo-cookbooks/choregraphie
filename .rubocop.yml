@@ -4,74 +4,24 @@
 # - submit the change in the code_generator
 
 AllCops:
-  TargetRubyVersion: 2.2
+  TargetRubyVersion: 2.7
 
-# This requires to add a comment inside nearly all file which could be
-# considered as toil without value
 Style/FrozenStringLiteralComment:
   Enabled: false
 
-### Disable line length constraint
 Metrics/LineLength:
   Max: 180
-# Because we're not in the 80s anymore.
-# Based on data from http://sideeffect.kr/popularconvention#ruby
-#
-### Comma after each line in a list
-Style/TrailingCommaInLiteral:
-  EnforcedStyleForMultiline: comma
-# It is very common to add key/value pairs to hashes in Chef attributes. Making
-# sure each line has a comma diminishes the chance of someone making an error
-# when adding a new pair. It also makes the code look more consistent. There is
-# also a good explanation on why this is enabled by default in Puppet
-# (see: http://www.puppetcookbook.com/posts/trailing-commas.html).
-#
-# Instead of writing:
-#   default['cookbook']['attribute'] = {
-#     a: 'a',
-#     b: 'b'
-#   }
-# you should write:
-#   default['cookbook']['attribute'] = {
-#     a: 'a',
-#     b: 'b',
-#   }
-#
-### Align hashes as a table
-Style/AlignHash:
-  EnforcedColonStyle: table
-  EnforcedHashRocketStyle: key
-# When dealing with long key names, it is easier to read hashes in colon
-# notation aligned as tables. However, the same does not seem to hold true
-# for hashes in rocket notation due to strange alignment rules.
-#
-# Instead of writing:
-#   default['cookbook']['attribute'] = {
-#     a: 'a',
-#     bb: 'b',
-#     ccc: 'c',
-#   }
-# you should write:
-#   default['cookbook']['attribute'] = {
-#     a:   'a',
-#     bb:  'b',
-#     ccc: 'c',
-#   }
-#
+
+
 Metrics/ModuleLength:
   Max: 20
-# In general, developers should follow the single responsibility principle, but
-# the bbatsov guide's 10-line limit seems rather arbitrary.
-# Based on: https://www.mediawiki.org/wiki/Manual:Coding_conventions/Ruby
 
 Metrics/MethodLength:
   Max: 40
 
-# This rule generates many false positive
 Style/VariableNumber:
   Enabled: false
 
-# This metric is hard to grasp but let's avoid delirious code
 Metrics/AbcSize:
   Max: 60
 
@@ -80,6 +30,8 @@ Style/TrailingCommaInArguments:
 
 Metrics/BlockLength:
   Max: 60
+  Exclude:
+    - spec/**/*
 
 Style/StringLiterals:
   ConsistentQuotesInMultiline: true
@@ -87,19 +39,35 @@ Style/StringLiterals:
 Style/FormatString:
   EnforcedStyle: percent
 
-# Really practical. Use with moderation though for readability
 Style/MultilineBlockChain:
   Enabled: false
 
-# We ain't serving subseconds requests. Forcing to use tr instead of gsub will
-# be annoying without much value
-Performance/StringReplacement:
+
+Style/FileName:
   Enabled: false
 
-# We don't write documentation there at the moment
+Lint/ConstantDefinitionInBlock:
+  Exclude:
+    - spec/**/*
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
 Style/Documentation:
   Enabled: false
 
-# Filename forces snake case for file names, we just want consistency for now
-Style/FileName:
+Lint/MissingSuper:
+  Enabled: false
+
+Naming/MethodParameterName:
+  AllowedNames:
+    - dc
+
+Metrics/ClassLength:
+  Enabled: false
+
+Style/ClassVars:
   Enabled: false

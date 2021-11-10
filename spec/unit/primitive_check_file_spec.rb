@@ -8,12 +8,12 @@ describe Choregraphie::CheckFile do
   end
 
   it 'must wait for file to be there' do
-    expect(File).to receive(:exists?).and_return(false, false, false, true)
-    choregraphie.before.each { |block| block.call }
+    expect(File).to receive(:exist?).and_return(false, false, false, true)
+    choregraphie.before.each(&:call)
   end
   it 'must clean the file in cleanup' do
-    expect(File).to receive(:exists?).and_return(true)
+    expect(File).to receive(:exist?).and_return(true)
     expect(FileUtils).to receive(:rm).with('random')
-    choregraphie.cleanup.each { |block| block.call }
+    choregraphie.cleanup.each(&:call)
   end
 end

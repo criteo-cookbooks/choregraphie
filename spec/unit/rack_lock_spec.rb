@@ -6,14 +6,16 @@ describe Choregraphie::SemaphoreByRack do
   SemaphoreByRack = Choregraphie::SemaphoreByRack
 
   # erase Chef::Log output
-  class Chef::Log
-    def self.info(_); end
+  class Chef
+    class Log
+      def self.info(_); end
 
-    def self.warn(_); end
+      def self.warn(_); end
 
-    def self.error(_); end
+      def self.error(_); end
 
-    def self.debug(_); end
+      def self.debug(_); end
+    end
   end
 
   let(:value) do
@@ -23,9 +25,9 @@ describe Choregraphie::SemaphoreByRack do
   let(:existing_response) do
     {
       status: 200,
-      body:   <<-EOH
+      body: <<-JSON
       [{"Value": "#{value}", "ModifyIndex": 1, "CreateIndex": 1, "LockIndex": 0, "Key": "chef_lock/test", "Flags": 0}]
-      EOH
+      JSON
     }
   end
 
@@ -35,7 +37,7 @@ describe Choregraphie::SemaphoreByRack do
         stub_request(:get, 'http://localhost:8500/v1/kv/check-lock/my_lock')
           .to_return(existing_response)
 
-        expect(SemaphoreByRack.get_or_create('check-lock/my_lock', 2, dc:nil, token:nil)).to be_a(SemaphoreByRack)
+        expect(SemaphoreByRack.get_or_create('check-lock/my_lock', 2, dc: nil, token: nil)).to be_a(SemaphoreByRack)
       end
     end
 
@@ -48,7 +50,7 @@ describe Choregraphie::SemaphoreByRack do
           .with(body: '{"version":1,"concurrency":2,"holders":{}}')
           .to_return(status: 200, body: 'true')
 
-        expect(SemaphoreByRack.get_or_create('check-lock/my_lock', 2, dc:nil, token:nil)).to be_a(SemaphoreByRack)
+        expect(SemaphoreByRack.get_or_create('check-lock/my_lock', 2, dc: nil, token: nil)).to be_a(SemaphoreByRack)
       end
     end
   end

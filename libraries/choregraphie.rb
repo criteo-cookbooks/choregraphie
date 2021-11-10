@@ -6,7 +6,6 @@ require 'chef/provider'
 
 module Choregraphie
   class Choregraphie
-
     @@choregraphies = {}
 
     def self.all
@@ -23,8 +22,10 @@ module Choregraphie
       @@choregraphies.clear
     end
 
-    attr_reader :name
-    attr_reader :resources
+    attr_reader :name, :resources
+
+    # @return [Array<Primitive>] the list of primitives registered by this choregraphie
+    attr_reader :primitives
 
     def clean_name
       name.gsub(/[^a-z]+/, '_')
@@ -37,17 +38,20 @@ module Choregraphie
       @before = []
       @cleanup = []
       @finish = []
+      # list of primitive used by this choregraphie
+      @primitives = []
 
       # read all available primitives and make them available with a method
       # using their name. It allows to call `check_file '/tmp/titi'` to
       # instantiate the CheckFile primitive
       Primitive.all.each do |klass|
-        instance_eval <<-EOM
+        instance_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{klass.primitive_name}(*args, &block)
           primitive = ::#{klass}.new(*args, &block)
+          @primitives << primitive
           primitive.register(self)
         end
-        EOM
+        METHOD
       end
 
       # bind cleanup in local context to access it in event_handler
@@ -59,28 +63,30 @@ module Choregraphie
         # resources do not make the run fail
         # and we don't want to cleanup just before the reboot
         on :converge_complete do
-          Chef::Log.debug "Chef-client convergence successful, will clean up all primitives"
-          cleanup_events.each { |b| b.call }
-          finish_events.each { |b| b.call }
+          Chef::Log.debug 'Chef-client convergence successful, will clean up all primitives'
+          cleanup_events.each(&:call)
+          finish_events.each(&:call)
         end
       end
 
       # this + method_missing allows to access method defined outside of the
       # block (in the recipe context for instance)
-      @self_before_instance_eval = eval "self", block.binding
-      instance_eval &block
+      @self_before_instance_eval = eval 'self', block.binding, __FILE__, __LINE__
+      instance_eval(&block)
     end
 
-    def method_missing(method, *args, &block)
+    def method_missing(method, *args, &block) # rubocop:disable Style/MissingRespondToMissing
       @self_before_instance_eval.send method, *args, &block
     end
 
     def cleanup_block_name(resource_name)
       "Cleanup callbacks for #{name}/#{resource_name}"
     end
+
     def before_block_name(resource_name)
       "Before callbacks for #{name}/#{resource_name}"
     end
+
     def finish_block_name(resource_name)
       "Terminate callbacks for #{name}/#{resource_name}"
     end
@@ -104,7 +110,8 @@ module Choregraphie
     def finish(&block)
       if block
         Chef::Log.debug("Registering a finish block for #{name}")
-        raise " A finish block already registered" unless @finish.empty?
+        raise ' A finish block already registered' unless @finish.empty?
+
         @finish << block
       end
       @finish
@@ -115,12 +122,13 @@ module Choregraphie
       begin
         resource = run_context.resource_collection.find(resource_name)
       rescue Chef::Exceptions::ResourceNotFound
-        if ignore_missing_resource
+        if ignore_missing_resource # rubocop:disable Style/GuardClause
           # some resources are defined only when used
           # so we ignore them
           return
         elsif resource_name =~ /,/
-          Chef::Log.warn "#{resource_name} contains a comma which triggers https://github.com/criteo-cookbooks/choregraphie/issues/43, we can't check if resource supports why run or not"
+          Chef::Log.warn "#{resource_name} contains a comma which triggers " \
+            "https://github.com/criteo-cookbooks/choregraphie/issues/43, we can't check if resource supports why run or not"
           resource = run_context.resource_collection.map(&:itself).find { |r| r.declared_key == resource_name }
           raise Chef::Exceptions::ResourceNotFound unless resource
         else
@@ -128,16 +136,16 @@ module Choregraphie
         end
       end
       if resource
-        resource.allowed_actions.
-          reject { |a| a == :nothing }.
-          each do |a|
-            provider = resource.provider_for_action(a)
-            unless provider.whyrun_supported?
-              Chef::Log.warn "Resource providers must support whyrun in order to be used by choregraphie"
-              Chef::Log.warn "If you are defining a custom resource see https://github.com/chef/chef/issues/4537 for a possible workaround"
-              raise "Provider for #{a} on #{resource.declared_key} must support whyrun"
-            end
-          end
+        resource.allowed_actions
+                .reject { |a| a == :nothing }
+                .each do |a|
+          provider = resource.provider_for_action(a)
+          next if provider.whyrun_supported?
+
+          Chef::Log.warn 'Resource providers must support whyrun in order to be used by choregraphie'
+          Chef::Log.warn 'If you are defining a custom resource see https://github.com/chef/chef/issues/4537 for a possible workaround'
+          raise "Provider for #{a} on #{resource.declared_key} must support whyrun"
+        end
       else
         Chef::Log.warn "#{resource_name} is not yet defined ?"
       end
@@ -165,7 +173,6 @@ module Choregraphie
       end
     end
 
-
     def on(event, opts = {})
       opts = Mash.new(opts)
       Chef::Log.info("Registering on #{event} for #{name}")
@@ -177,6 +184,7 @@ module Choregraphie
       when Regexp
         on_each_resource do |resource, choregraphie|
           next unless resource.declared_key =~ event
+
           Chef::Log.debug "Will create a dynamic recipe for #{resource}"
           Chef::Recipe.new(:choregraphie, "dynamic_recipe_for_#{resource.declared_key}_#{clean_name}", run_context).instance_eval do
             choregraphie.setup_hook(resource.declared_key, opts)
@@ -186,8 +194,9 @@ module Choregraphie
         # all resources whose weight is non-zero is protected by default
         weight_threshold = opts[:threshold] || 0
         on_each_resource do |resource, choregraphie|
-          if resource.class.properties.has_key?(:weight)
+          if resource.class.properties.key?(:weight) # rubocop:disable Style/GuardClause
             next if resource.weight <= weight_threshold
+
             Chef::Log.debug "Will create a dynamic recipe for #{resource}"
             Chef::Recipe.new(:choregraphie, "dynamic_recipe_for_#{resource.declared_key}_#{clean_name}", run_context).instance_eval do
               choregraphie.setup_hook(resource.declared_key, opts)
@@ -200,13 +209,13 @@ module Choregraphie
         before_events = method(:before)
         Chef.event_handler do
           on :converge_start do
-            Chef::Log.info "Chef client starting to converge, running before callbacks."
-            before_events.call.each { |b| b.call }
+            Chef::Log.info 'Chef client starting to converge, running before callbacks.'
+            before_events.call.each(&:call)
           end
         end
       else
         # TODO
-        raise "Symbol types are not yet supported"
+        raise 'Symbol types are not yet supported'
       end
     end
 
@@ -225,10 +234,9 @@ module Choregraphie
         end
       end
     end
-
   end
 end
 
-Chef::Recipe.send(:include, Choregraphie::DSL)
-Chef::Resource.send(:include, Choregraphie::DSL)
-Chef::Provider.send(:include, Choregraphie::DSL)
+Chef::Recipe.include Choregraphie::DSL
+Chef::Resource.include Choregraphie::DSL
+Chef::Provider.include Choregraphie::DSL

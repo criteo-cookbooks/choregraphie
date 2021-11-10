@@ -8,14 +8,13 @@ module Choregraphie
     end
 
     def register(choregraphie)
-
       choregraphie.before do
         Chef::Log.info "Waiting for #{@file_path} presence"
-        sleep(@period) until ::File.exists?(@file_path)
+        sleep(@period) until ::File.exist?(@file_path)
       end
 
       choregraphie.cleanup do
-        ::FileUtils.rm(@file_path) if File.exists?(@file_path)
+        ::FileUtils.rm(@file_path) if File.exist?(@file_path)
       end
     end
   end

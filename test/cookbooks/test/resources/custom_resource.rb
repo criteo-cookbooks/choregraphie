@@ -7,7 +7,7 @@ provides :custom_resource
 
 action :create do
   require 'tmpdir'
-  file ::File.join(Dir.tmpdir(), 'hi')
+  file ::File.join(Dir.tmpdir, 'hi')
 end
 
 action_class do

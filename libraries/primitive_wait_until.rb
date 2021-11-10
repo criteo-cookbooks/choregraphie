@@ -43,20 +43,20 @@ module Choregraphie
     end
 
     def register(choregraphie)
-      unless %w(before cleanup).include?(@when.to_s)
-        raise "Incorrect value <#{@when}> for 'when' option in wait_until"
-      end
+      raise "Incorrect value <#{@when}> for 'when' option in wait_until" unless %w[before cleanup].include?(@when.to_s)
+
       choregraphie.send(@when.to_sym) do |resource_name|
         loop do
           Chef::Log.info "Checking if #{@name} is 'true'"
           result = begin
-                     @condition.call(resource_name)
-                   rescue => e
-                     Chef::Log.info "wait_until condition raised an exception: #{e.message}"
-                     Chef::Log.info e.backtrace
-                     raise
-                   end
+            @condition.call(resource_name)
+          rescue StandardError => e
+            Chef::Log.info "wait_until condition raised an exception: #{e.message}"
+            Chef::Log.info e.backtrace
+            raise
+          end
           break if result
+
           Chef::Log.info "Waiting #{@period}s before retrying"
           sleep(@period)
         end

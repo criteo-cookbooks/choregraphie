@@ -23,11 +23,11 @@ module Choregraphie
       tries.times do |try|
         Kernel.sleep @options[:delay]
         begin
-          # We wrap this inside a begin..rescue block
+          #  We wrap this inside a begin..rescue block
           # so that any consul failure would not instantly
           # result in an exception
           checks = Diplomat::Check.checks(@options)
-        rescue => e
+        rescue StandardError => e
           Chef::Log.error "Could not get checks from Consul: #{e}"
           next
         end
@@ -41,7 +41,7 @@ module Choregraphie
         end
 
         non_passing = relevant_checks
-          .reject { |check| check['Status'] == 'passing' }
+                      .reject { |check| check['Status'] == 'passing' }
 
         Chef::Log.warn "Check #{non_passing.map { |c| c['CheckID'] }.join(',')} failed" if non_passing.any?
 
