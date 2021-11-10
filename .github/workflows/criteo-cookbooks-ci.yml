@@ -45,7 +45,7 @@ jobs:
       uses: afaundez/chef-supermarket-action@8cdbe1cccbe1ecd8685b2ea8f48780135bae7cee
       with:
         user: criteo
-        cookbook: nexus3
+        cookbook: choregraphie
         category: Utilities
       env:
         SUPERMARKET_API_KEY: ${{ secrets.SUPERMARKET_API_KEY }}
