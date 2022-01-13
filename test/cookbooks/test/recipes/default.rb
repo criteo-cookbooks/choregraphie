@@ -60,6 +60,10 @@ execute 'name with a, in its name' do
   command 'uname'
 end
 
+def method_defined_outside_choregraphie_context
+  # we do nothing, just want to check we can be called
+end
+
 choregraphie 'execute' do
   on 'execute[converging]'
   on 'execute[not_converging]'
@@ -74,7 +78,10 @@ choregraphie 'execute' do
   on :weighted_resources
   on :converge_start
 
+  method_defined_outside_choregraphie_context
+
   before do |resource|
+    method_defined_outside_choregraphie_context
     filename = if resource.nil?
                  Chef::Log.warn('I am called before! for converge start')
                  'converge_start'
