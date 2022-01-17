@@ -48,6 +48,8 @@ Usage of compat\_resource cookbook is highly discouraged as it modifies chef beh
 Choregraphies can be applied only on resources that support whyrun (currently chef default resources and resource/provider style).
 Custom resources (the whole resource defined in the resources/ directory) are not supported at the moment (see https://github.com/chef/chef/issues/4537 for a discussion).
 
+With chef >14, it's not possible anymore to hook on `log` resources.
+
 Available Primitives
 --------------------
 

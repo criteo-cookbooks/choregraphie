@@ -4,9 +4,9 @@ dir = Dir.tmpdir
 %w[
   execute_converging
   test_simple_resource_converging
-  log_a_simple_log
-  log_another_log
-  log_a_log_defined_after_choregraphie
+  execute_uname
+  execute_uname_a
+  execute_echo_a_command_defined_after_choregraphie
   custom_resource_my_converging_custom_resource
   execute_whoami
 ].each do |path|

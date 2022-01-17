@@ -38,8 +38,8 @@ test_simple_resource 'not_converging' do
   only_if { false }
 end
 
-log 'a_simple_log'
-log 'another_log'
+execute 'uname'
+execute 'uname -a'
 
 custom_resource 'my converging custom resource'
 
@@ -71,9 +71,7 @@ choregraphie 'execute' do
   on 'test_simple_resource[not_converging]'
   on 'custom_resource[my converging custom resource]'
   on 'custom_resource[my useless custom resource]'
-  on(/execute\[name with a,/)
-
-  on(/^log\[/)
+  on(/^execute/)
 
   on :weighted_resources
   on :converge_start
@@ -102,4 +100,4 @@ choregraphie 'execute' do
   end
 end
 
-log 'a_log_defined_after_choregraphie'
+execute 'echo a_command_defined_after_choregraphie'
