@@ -2,7 +2,7 @@
 ---
 driver:
   name: dokken
-  chef_version: 14.7.17
+  chef_version: 17.9.26
   privileged: true # because Docker and SystemD/Upstart
 
 transport:
@@ -10,9 +10,10 @@ transport:
 
 provisioner:
   name: dokken
+  chef_license: accept-no-persist
 
 verifier:
-  name: busser
+  name: inspec
 
 platforms:
 - name: centos-7

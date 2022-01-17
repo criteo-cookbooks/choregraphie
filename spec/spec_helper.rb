@@ -5,7 +5,8 @@ require 'webmock/rspec'
 WebMock.disable_net_connect!(allow: [
                                %r{127.0.0.1:\d+/(sandboxes|file_store|cookbooks|nodes|environments)},
                                /supermarket.chef.io/,
-                               /s3.amazonaws.com/
+                               /s3.amazonaws.com/,
+                               /fauxhai/
                              ])
 
 RSpec.configure do |config|

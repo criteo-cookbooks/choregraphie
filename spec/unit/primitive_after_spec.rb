@@ -17,6 +17,7 @@ describe Choregraphie::After do
 
     context 'when node has been installed long time ago' do
       before do
+        allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(/installed/).and_return(true)
       end
 
@@ -47,6 +48,7 @@ describe Choregraphie::After do
 
     context 'when node has just been installed' do
       before do
+        allow(File).to receive(:exist?).and_call_original
         allow(File).to receive(:exist?).with(/installed/).and_return(false)
       end
       context 'when a choregraphie is in progress' do
