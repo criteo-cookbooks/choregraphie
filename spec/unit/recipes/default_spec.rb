@@ -5,7 +5,7 @@ describe 'test::default' do
     let(:chef_run) do
       runner = ChefSpec::SoloRunner.new(
         platform: 'centos',
-        version: '7.5.1804',
+        version: '7.8.2003',
       ) { ::Choregraphie::Choregraphie.clear }
       stub_command("test -f #{Dir.tmpdir}/not_converging.tmp").and_return(0)
       runner.converge(described_recipe)
