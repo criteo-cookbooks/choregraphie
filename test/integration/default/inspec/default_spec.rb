@@ -1,4 +1,3 @@
-require 'spec_helper'
 require 'tmpdir'
 dir = Dir.tmpdir
 

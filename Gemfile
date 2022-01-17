@@ -9,6 +9,7 @@ gem 'kitchen-dokken'
 gem 'kitchen-vagrant'
 gem 'rake'
 gem 'serverspec'
+gem 'kitchen-inspec'
 
 gem 'kitchen-transport-speedy'
 group :ec2 do

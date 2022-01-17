@@ -12,7 +12,7 @@ provisioner:
   name: dokken
 
 verifier:
-  name: busser
+  name: inspec
 
 platforms:
 - name: centos-7
