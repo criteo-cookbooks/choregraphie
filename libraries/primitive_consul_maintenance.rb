@@ -8,6 +8,7 @@ module Choregraphie
       @options = Mash.new(options)
 
       @options[:reason] ||= 'Maintenance for Chef Choregraphie'
+      @options[:check_interval] ||= 5
 
       ConsulCommon.setup_consul(@options)
 
@@ -24,9 +25,17 @@ module Choregraphie
     end
 
     def maintenance?
-      checks = Diplomat::Agent.checks()
-      maint_status = checks.dig(@maintenance_key, 'Status')
-      maint_status == 'critical' && !checks.dig(@maintenance_key, 'Notes').nil?
+      # we observed in very rare cases that maintenance status could be not up to date
+      # for ~5s after a restart
+      results = 3.times.map do
+        checks = Diplomat::Agent.checks()
+        maint_status = checks.dig(@maintenance_key, 'Status')
+        sleep(@options[:check_interval])
+        maint_status == 'critical' && !checks.dig(@maintenance_key, 'Notes').nil?
+      end
+      raise "Several consecutive checks of maintenance status returned different results: #{results.join(', ')}" if results.uniq.size > 1
+
+      results.first
     end
 
     # @return [String, nil] reason of the maintenance, if any. Nil otherwise
