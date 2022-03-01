@@ -26,7 +26,13 @@ module Choregraphie
     def maintenance?
       checks = Diplomat::Agent.checks()
       maint_status = checks.dig(@maintenance_key, 'Status')
-      maint_status == 'critical' && checks.dig(@maintenance_key, 'Notes')
+      maint_status == 'critical' && !checks.dig(@maintenance_key, 'Notes').nil?
+    end
+
+    # @return [String, nil] reason of the maintenance, if any. Nil otherwise
+    def maintenance_reason
+      checks = Diplomat::Agent.checks()
+      checks.dig(@maintenance_key, 'Notes')
     end
 
     def maintenance(enable = true) # rubocop:disable Style/OptionalBooleanParameter
@@ -41,8 +47,8 @@ module Choregraphie
     def register(choregraphie)
       choregraphie.before do
         require 'diplomat'
-        if (maint_notes = maintenance?)
-          Chef::Log.warn "Consul maintenance was already enabled (reason: #{maint_notes})."
+        if maintenance?
+          Chef::Log.warn "Consul maintenance was already enabled (reason: #{maintenance_reason})."
         else
           maintenance(true)
         end
@@ -50,7 +56,8 @@ module Choregraphie
 
       choregraphie.cleanup do
         require 'diplomat'
-        if (maint_notes = maintenance?)
+        if maintenance?
+          maint_notes = maintenance_reason
           if maint_notes == @options[:reason]
             Chef::Log.info "Consul maintenance will be disabled (reason: #{maint_notes})."
             maintenance(false)
