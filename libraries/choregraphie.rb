@@ -46,8 +46,8 @@ module Choregraphie
       # instantiate the CheckFile primitive
       Primitive.all.each do |klass|
         instance_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def #{klass.primitive_name}(*args, &block)
-          primitive = ::#{klass}.new(*args, &block)
+        def #{klass.primitive_name}(*args, **kwargs, &block)
+          primitive = ::#{klass}.new(*args, **kwargs, &block)
           @primitives << primitive
           primitive.register(self)
         end
@@ -75,8 +75,8 @@ module Choregraphie
       instance_eval(&block)
     end
 
-    def method_missing(method, *args, &block) # rubocop:disable Style/MissingRespondToMissing
-      @self_before_instance_eval.send method, *args, &block
+    def method_missing(method, *args, **kwargs, &block) # rubocop:disable Style/MissingRespondToMissing
+      @self_before_instance_eval.send method, *args, **kwargs, &block
     end
 
     def cleanup_block_name(resource_name)
