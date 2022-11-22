@@ -31,6 +31,8 @@ module Choregraphie
       name.gsub(/[^a-z]+/, '_')
     end
 
+    def pass_keywords(*); end unless respond_to?(:pass_keywords, true)
+
     def initialize(name, &block)
       @name = name
       # Contains the list of resources protected by this choregraphie
@@ -44,10 +46,11 @@ module Choregraphie
       # read all available primitives and make them available with a method
       # using their name. It allows to call `check_file '/tmp/titi'` to
       # instantiate the CheckFile primitive
+      delegated_args = RUBY_VERSION < '3' ? '*args, &block' : '*args, **kwargs, &block'
       Primitive.all.each do |klass|
         instance_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def #{klass.primitive_name}(*args, **kwargs, &block)
-          primitive = ::#{klass}.new(*args, **kwargs, &block)
+        #{RUBY_VERSION < '3' ? 'pass_keywords ' : ''} def #{klass.primitive_name}(#{delegated_args})
+          primitive = ::#{klass}.new(#{delegated_args})
           @primitives << primitive
           primitive.register(self)
         end
@@ -75,8 +78,14 @@ module Choregraphie
       instance_eval(&block)
     end
 
-    def method_missing(method, *args, **kwargs, &block) # rubocop:disable Style/MissingRespondToMissing
-      @self_before_instance_eval.send method, *args, **kwargs, &block
+    if RUBY_VERSION < '3'
+      pass_keywords def method_missing(method, *args, &block) # rubocop:disable Style/MissingRespondToMissing
+        @self_before_instance_eval.send method, *args, &block
+      end
+    else
+      def method_missing(method, *args, **kwargs, &block) # rubocop:disable Style/MissingRespondToMissing
+        @self_before_instance_eval.send method, *args, **kwargs, &block
+      end
     end
 
     def cleanup_block_name(resource_name)
