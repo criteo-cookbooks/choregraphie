@@ -44,7 +44,7 @@ module Choregraphie
       # read all available primitives and make them available with a method
       # using their name. It allows to call `check_file '/tmp/titi'` to
       # instantiate the CheckFile primitive
-      delegated_args = RUBY_VERSION < '3' ? '*args, &block' : '*args, **kwargs, &block'
+      delegated_args = RUBY_VERSION.to_i < 3 ? '*args, &block' : '*args, **kwargs, &block'
       Primitive.all.each do |klass|
         instance_eval <<-METHOD, __FILE__, __LINE__ + 1
         def #{klass.primitive_name}(#{delegated_args})
@@ -76,7 +76,7 @@ module Choregraphie
       instance_eval(&block)
     end
 
-    if RUBY_VERSION < '3'
+    if RUBY_VERSION.to_i < 3
       def method_missing(method, *args, &block) # rubocop:disable Style/MissingRespondToMissing
         @self_before_instance_eval.send method, *args, &block
       end
