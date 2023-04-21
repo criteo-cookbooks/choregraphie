@@ -28,7 +28,7 @@ module Choregraphie
       # we observed in very rare cases that maintenance status could be not up to date
       # for ~5s after a restart
       results = 3.times.map do
-        checks = Diplomat::Agent.checks()
+        checks = Diplomat::Agent.checks
         maint_status = checks.dig(@maintenance_key, 'Status')
         sleep(@options[:check_interval])
         maint_status == 'critical' && !checks.dig(@maintenance_key, 'Notes').nil?
@@ -40,7 +40,7 @@ module Choregraphie
 
     # @return [String, nil] reason of the maintenance, if any. Nil otherwise
     def maintenance_reason
-      checks = Diplomat::Agent.checks()
+      checks = Diplomat::Agent.checks
       checks.dig(@maintenance_key, 'Notes')
     end
 
