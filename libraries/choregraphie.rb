@@ -129,7 +129,7 @@ module Choregraphie
       begin
         resource = run_context.resource_collection.find(resource_name)
       rescue Chef::Exceptions::ResourceNotFound
-        if ignore_missing_resource # rubocop:disable Style/GuardClause
+        if ignore_missing_resource
           # some resources are defined only when used
           # so we ignore them
           return
