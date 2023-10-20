@@ -18,7 +18,9 @@ module Choregraphie
       yield if block_given?
     end
 
-    def are_checks_passing?(tries)
+    # @return [Array<String>] name of the failing checks
+    def failing_checks(tries)
+      non_passing = []
       require 'diplomat'
       tries.times do |try|
         Kernel.sleep @options[:delay]
@@ -45,16 +47,17 @@ module Choregraphie
 
         Chef::Log.warn "Check #{non_passing.map { |c| c['CheckID'] }.join(',')} failed" if non_passing.any?
 
-        return true if non_passing.empty?
+        return [] if non_passing.empty?
 
         Chef::Log.warn "Some checks did not pass, will retry #{tries - try} more times"
       end
-      false
+      non_passing.map { |id, check| "#{check['ServiceName']}:#{id}" }
     end
 
     def register(choregraphie)
       choregraphie.cleanup do
-        raise 'Failed to pass Consul checks' unless are_checks_passing? @options[:tries]
+        failing_checks = failing_checks(@options[:tries])
+        raise "Failed to pass Consul checks: #{failing_checks.join(', ')}" unless failing_checks.empty?
       end
     end
   end
