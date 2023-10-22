@@ -51,7 +51,7 @@ module Choregraphie
 
         Chef::Log.warn "Some checks did not pass, will retry #{tries - try} more times"
       end
-      non_passing.map { |id, check| "#{check['ServiceName']}:#{id}" }
+      non_passing.map { |check| "#{check['ServiceName']}/#{check['CheckID']}" }
     end
 
     def register(choregraphie)

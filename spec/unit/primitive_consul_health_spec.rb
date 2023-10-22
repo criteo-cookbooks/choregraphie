@@ -21,6 +21,7 @@ describe Choregraphie::ConsulHealthCheck do
               'service:ping' => {
                 CheckID: 'service:ping',
                 Name: "Service 'ping' check",
+                ServiceName: 'service',
                 Status: 'critical'
               }
             }.to_json
