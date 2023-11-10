@@ -13,7 +13,7 @@ describe Choregraphie::ConsulHealthCheck do
     end
   end
   context 'when the healthcheck is not passing after n times' do
-    it 'must count service instances correctly' do
+    before do
       stub_request(:get, 'http://localhost:8500/v1/agent/checks')
         .to_return([
           {
@@ -27,8 +27,14 @@ describe Choregraphie::ConsulHealthCheck do
             }.to_json
           }
         ] * 3)
+    end
 
+    it 'must count service instances correctly' do
       expect { choregraphie.cleanup.each(&:call) }.to raise_error(/Failed to pass Consul checks/)
+    end
+
+    it 'mentions the failing checks' do
+      expect { choregraphie.cleanup.each(&:call) }.to raise_error(%r{Failed to pass Consul checks: service/service:ping})
     end
   end
 
@@ -102,6 +108,10 @@ describe Choregraphie::ConsulHealthCheck do
       end
       it 'fails' do
         expect { choregraphie.cleanup.each(&:call) }.to raise_error(/Failed to pass Consul checks/)
+      end
+
+      it 'mentions the failing checks' do
+        expect { choregraphie.cleanup.each(&:call) }.to raise_error(%r{Failed to pass Consul checks: my-service/service:ping3})
       end
     end
 
