@@ -1,4 +1,5 @@
 require_relative 'primitive'
+require 'ostruct' # This is a Diplomat dependency that they never specified ...
 
 # Common functions for Consul
 module Choregraphie
