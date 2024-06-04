@@ -18,6 +18,7 @@ module Choregraphie
       raise ArgumentError, "You can't set both concurrency and service" if @options[:concurrency] && @options[:service]
 
       @options[:backoff] ||= 5 # seconds
+      @options[:raise_on_failures] = false
 
       ConsulCommon.setup_consul(@options)
 
@@ -74,7 +75,9 @@ module Choregraphie
       dc = "(in #{@options[:datacenter]})" if @options[:datacenter]
       Chef::Log.info "Will #{action} the lock #{path} #{dc}"
       start = Time.now
-      success = 0.upto(opts[:max_failures] || Float::INFINITY).any? do |tries|
+      max_failures = opts[:max_failures] || @options[:max_failures]
+      raise_on_failures = opts[:raise_on_failures].nil? ? @options[:raise_on_failures] : opts[:raise_on_failures]
+      success = 0.upto(max_failures || Float::INFINITY).any? do |tries|
         yield(start, tries) || backoff(start, tries)
       rescue StandardError => e
         Chef::Log.warn "Error while #{action}-ing lock"
@@ -85,7 +88,8 @@ module Choregraphie
       if success
         Chef::Log.info "#{action.to_s.capitalize}ed the lock #{path}"
       else
-        Chef::Log.warn "Will ignore errors and since we've reached #{opts[:max_failures]} errors"
+        Chef::Log.warn "Will ignore errors and since we've reached #{max_failures} errors"
+        raise "Max attempt #{max_failures} reached" if max_failures && raise_on_failures
       end
     end
 
@@ -101,7 +105,7 @@ module Choregraphie
         # The reason we have to be a bit more relaxed here, is that all
         # chef run including a choregraphie with this primitive try to
         # release the lock at the end of a successful run
-        wait_until(:exit, max_failures: 5) { semaphore.exit(name: @options[:id]) }
+        wait_until(:exit, max_failures: 5, raise_on_failures: false) { semaphore.exit(name: @options[:id]) }
       end
     end
 

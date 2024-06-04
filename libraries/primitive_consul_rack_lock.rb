@@ -27,7 +27,7 @@ module Choregraphie
         # The reason we have to be a bit more relaxed here, is that all
         # chef run including a choregraphie with this primitive try to
         # release the lock at the end of a successful run
-        wait_until(:exit, max_failures: 5) { semaphore.exit(name: @options[:rack], server: @options[:id]) }
+        wait_until(:exit, max_failures: 5, raise_on_failures: false) { semaphore.exit(name: @options[:rack], server: @options[:id]) }
       end
     end
 
