@@ -15,24 +15,23 @@ jobs:
       - uses: actions/checkout@v2
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.7
+          ruby-version: 3.0.3
           bundler-cache: true
       - run: bundle exec rubocop --version
       - run: bundle exec rubocop
-      - run: bundle exec foodcritic --version
-      - run: bundle exec foodcritic . --exclude spec -f any
+      - run:  bundle exec cookstyle -c cookstyle.yml .
       - run: bundle exec rspec
   kitchen:
     needs: [rspec]
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        instance: ['default-centos-7', 'default-ubuntu-1604', 'default-fedora-29']
+        instance: ['default-centos-8', 'default-ubuntu-2404', 'default-fedora-40']
     steps:
       - uses: actions/checkout@v2
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.7
+          ruby-version: 3.0.3
           bundler-cache: true
       - run: KITCHEN_LOCAL_YAML=.kitchen.docker.yml bundle exec kitchen verify ${{ matrix.instance }}
   supermarket:

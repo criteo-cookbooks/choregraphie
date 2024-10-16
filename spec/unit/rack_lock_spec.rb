@@ -37,7 +37,7 @@ describe Choregraphie::SemaphoreByRack do
         stub_request(:get, 'http://localhost:8500/v1/kv/check-lock/my_lock')
           .to_return(existing_response)
 
-        expect(SemaphoreByRack.get_or_create('check-lock/my_lock', 2, dc: nil, token: nil)).to be_a(SemaphoreByRack)
+        expect(SemaphoreByRack.get_or_create('check-lock/my_lock', concurrency: 2, dc: nil, token: nil)).to be_a(SemaphoreByRack)
       end
     end
 
@@ -50,7 +50,7 @@ describe Choregraphie::SemaphoreByRack do
           .with(body: '{"version":1,"concurrency":2,"holders":{}}')
           .to_return(status: 200, body: 'true')
 
-        expect(SemaphoreByRack.get_or_create('check-lock/my_lock', 2, dc: nil, token: nil)).to be_a(SemaphoreByRack)
+        expect(SemaphoreByRack.get_or_create('check-lock/my_lock', concurrency: 2, dc: nil, token: nil)).to be_a(SemaphoreByRack)
       end
     end
   end
@@ -59,21 +59,21 @@ describe Choregraphie::SemaphoreByRack do
     value = { version: 1, concurrency: 5, holders: { another_rack: { another_node: 12_345 } } }.to_json
     SemaphoreByRack.new(
       'check-lock/my_lock',
-      'Value' => value, 'ModifyIndex' => 42,
+      new_lock: { 'Value' => value, 'ModifyIndex' => 42 },
     )
   end
   let(:full_lock) do
     value = { version: 1, concurrency: 1, holders: { another_rack: { another_node: 12_345 } } }.to_json
     SemaphoreByRack.new(
       'check-lock/my_lock',
-      'Value' => value, 'ModifyIndex' => 42,
+      new_lock: { 'Value' => value, 'ModifyIndex' => 42 },
     )
   end
   let(:taken_lock) do
     value = { version: 1, concurrency: 5, holders: { my_rack: { myself: 12_345, another_node: 123_456 } } }.to_json
     SemaphoreByRack.new(
       'check-lock/my_lock',
-      'Value' => value, 'ModifyIndex' => 42,
+      new_lock: { 'Value' => value, 'ModifyIndex' => 42 },
     )
   end
 

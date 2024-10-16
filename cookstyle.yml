@@ -1,0 +1,49 @@
+AllCops:
+  TargetChefVersion: 17.9.46
+  TargetRubyVersion: 3.0.3 # Matches Chef client 17.9.46
+
+# Chef
+Chef/Correctness/IncorrectLibraryInjection:
+  Enabled: false
+Chef/Deprecations/FoodcriticTesting:
+  Enabled: false
+Chef/RedundantCode/LongDescriptionMetadata:
+  Enabled: false
+Chef/RedundantCode/NamePropertyIsRequired:
+  Enabled: false
+Chef/Deprecations/ResourceWithoutUnifiedTrue:
+  Enabled: false
+Chef/Deprecations/UseInlineResourcesDefined:
+  Enabled: false
+Chef/Modernize/RespondToInMetadata:
+  Enabled: false
+Chef/Modernize/ShellOutHelper:
+  Enabled: false
+Chef/Modernize/WhyRunSupportedTrue:
+  Enabled: false
+Chef/Sharing/EmptyMetadataField:
+  Enabled: false
+Chef/Sharing/InvalidLicenseString:
+  Enabled: false
+Chef/Style/CommentFormat:
+  Enabled: false
+
+# Layout
+Layout/RescueEnsureAlignment:
+  Enabled: false
+
+# Style
+Style/ClassVars:
+  Enabled: false
+Style/FormatString:
+  Enabled: false
+Style/PercentLiteralDelimiters:
+  Enabled: false
+Style/StringLiterals:
+  Enabled: false
+Style/TrailingCommaInArguments:
+  Enabled: false
+Style/TrailingCommaInArrayLiteral:
+  Enabled: false
+Style/TrailingCommaInHashLiteral:
+  Enabled: false

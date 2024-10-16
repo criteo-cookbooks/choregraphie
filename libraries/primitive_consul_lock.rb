@@ -51,7 +51,7 @@ module Choregraphie
 
     def semaphore
       # this object cannot be reused after enter/exit
-      semaphore_class.get_or_create(path, concurrency, dc: @options[:datacenter], token: @options[:token])
+      semaphore_class.get_or_create(path, concurrency: concurrency, dc: @options[:datacenter], token: @options[:token])
     end
 
     def backoff(start_time, current_try)
@@ -113,20 +113,22 @@ module Choregraphie
   end
 
   class Semaphore
-    def self.get_or_create(path, concurrency, dc: nil, token: nil)
+    def self.get_or_create(path, concurrency:, **kwargs)
+      dc = kwargs[:dc]
+      token = kwargs[:token]
       require 'diplomat'
       retry_left = 5
       value = Mash.new({ version: 1, concurrency: concurrency, holders: {} })
       current_lock = begin
         Chef::Log.info "Fetch lock state for #{path}"
-        Diplomat::Kv.get(path, decode_values: true, dc: dc, token: token)
+        Diplomat::Kv.get(path, decode_values: true, dc: dc, token: dc)
       rescue Diplomat::KeyNotFound
         Chef::Log.info "Lock for #{path} did not exist, creating with value #{value}"
         Diplomat::Kv.put(path, value.to_json, cas: 0, dc: dc, token: token) # we ignore success/failure of CaS
         (retry_left -= 1).positive? ? retry : raise
       end.first
       desired_lock = bootstrap_lock(value, current_lock)
-      new(path, desired_lock, dc, token: token)
+      new(path, new_lock: desired_lock, dc: dc, token: token)
     end
 
     def self.bootstrap_lock(desired_value, current_lock)
@@ -138,7 +140,9 @@ module Choregraphie
       desired_lock
     end
 
-    def initialize(path, new_lock, dc = nil, token: nil)
+    def initialize(path, new_lock:, **kwargs)
+      dc = kwargs[:dc]
+      token = kwargs[:token]
       @path = path
       @h    = JSON.parse(new_lock['Value'])
       @cas  = new_lock['ModifyIndex']
