@@ -4,12 +4,12 @@
 # - submit the change in the code_generator
 
 AllCops:
-  TargetRubyVersion: 2.7
+  TargetRubyVersion: 3.0.3
 
 Style/FrozenStringLiteralComment:
   Enabled: false
 
-Metrics/LineLength:
+Layout/LineLength:
   Max: 180
 
 
@@ -19,7 +19,7 @@ Metrics/ModuleLength:
 Metrics/MethodLength:
   Max: 40
 
-Style/VariableNumber:
+Naming/VariableNumber:
   Enabled: false
 
 Metrics/AbcSize:
@@ -43,7 +43,7 @@ Style/MultilineBlockChain:
   Enabled: false
 
 
-Style/FileName:
+Naming/FileName:
   Enabled: false
 
 Lint/ConstantDefinitionInBlock:
@@ -71,3 +71,6 @@ Metrics/ClassLength:
 
 Style/ClassVars:
   Enabled: false
+
+Style/HashSyntax:
+  EnforcedShorthandSyntax: never

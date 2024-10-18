@@ -16,28 +16,31 @@ verifier:
   name: inspec
 
 platforms:
-- name: centos-7
+- name: centos-8
   driver:
-    image: centos:7
+    image: centos:8
     intermediate_instructions:
-      - RUN yum clean all
-      - RUN yum install -y sudo
+      - RUN dnf clean all
+      # - RUN dnf install -y sudo # Centos 8 deprecated see https://blog.centos.org/2023/04/end-dates-are-coming-for-centos-stream-8-and-centos-linux-7/
     pid_one_command: /usr/lib/systemd/systemd
 
-- name: fedora-29
+- name: fedora-40
   driver:
-    image: fedora:29
+    image: fedora:40
     intermediate_instructions:
-    - RUN yum clean all
-    - RUN yum install -y sudo
-    pid_one_command: /usr/lib/systemd/systemd
+    - RUN dnf clean all
+    - RUN dnf install -y sudo
+    - RUN dnf install -y libxcrypt-compat
+    - RUN dnf install -y systemd
+    pid_one_command: /lib/systemd/systemd
 
-- name: ubuntu-16.04
+- name: ubuntu-24.04
   driver:
-    image: ubuntu:16.04
-    pid_one_command: /bin/systemd
+    image: ubuntu:24.04
+    pid_one_command: /usr/bin/systemd
     intermediate_instructions:
-      - RUN /usr/bin/apt-get update
+      - RUN /usr/bin/apt-get -y update
+      - RUN /usr/bin/apt install -y systemd
       - RUN /usr/bin/apt-get install sudo -y
 
 suites:

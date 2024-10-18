@@ -129,11 +129,11 @@ module Choregraphie
       begin
         resource = run_context.resource_collection.find(resource_name)
       rescue Chef::Exceptions::ResourceNotFound
-        if ignore_missing_resource
-          # some resources are defined only when used
-          # so we ignore them
-          return
-        elsif resource_name =~ /,/
+        # some resources are defined only when used
+        # so we ignore them
+        return if ignore_missing_resource
+
+        if resource_name =~ /,/ # rubocop: disable Style/GuardClause
           Chef::Log.warn "#{resource_name} contains a comma which triggers " \
             "https://github.com/criteo-cookbooks/choregraphie/issues/43, we can't check if resource supports why run or not"
           resource = run_context.resource_collection.map(&:itself).find { |r| r.declared_key == resource_name }

@@ -4,6 +4,7 @@ gem 'chef', '>= 17.9.26'
 gem 'chefspec', '>= 9.3.1'
 
 gem 'berkshelf'
+gem 'cookstyle'
 gem 'foodcritic'
 gem 'kitchen-dokken'
 gem 'kitchen-inspec'

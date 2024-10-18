@@ -9,6 +9,6 @@ source_url       'https://github.com/criteo-cookbooks/choregraphie' if respond_t
 version          '0.17.0'
 supports         'centos'
 supports         'windows'
-chef_version     '>= 13.0.0'
+chef_version     '>= 17.9.26'
 
 depends          'resource-weight'
