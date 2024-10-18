@@ -122,6 +122,11 @@ module Choregraphie
       current_lock = begin
         Chef::Log.info "Fetch lock state for #{path}"
         Diplomat::Kv.get(path, decode_values: true, dc: dc, token: dc)
+      rescue Faraday::ConnectionFailed => e
+        retry_secs = 30
+        Chef::Log.info "Consul did not respond, wait #{retry_secs} seconds and retry to let it (re)start: #{e}"
+        sleep retry_secs
+        (retry_left -= 1).positive? ? retry : raise
       rescue Diplomat::KeyNotFound
         Chef::Log.info "Lock for #{path} did not exist, creating with value #{value}"
         Diplomat::Kv.put(path, value.to_json, cas: 0, dc: dc, token: token) # we ignore success/failure of CaS
@@ -170,9 +175,17 @@ module Choregraphie
       if can_enter_lock?(opts)
         enter_lock(opts)
         require 'diplomat'
-        result = Diplomat::Kv.put(@path, to_json, cas: @cas, dc: @dc, token: @token)
-        Chef::Log.debug('Someone updated the lock at the same time, will retry') unless result
-        result
+        retry_left = 5
+        begin
+          result = Diplomat::Kv.put(@path, to_json, cas: @cas, dc: @dc, token: @token)
+          Chef::Log.debug('Someone updated the lock at the same time, will retry') unless result
+          result
+        rescue Faraday::ConnectionFailed => e
+          retry_secs = 30
+          Chef::Log.info "Consul did not respond, wait #{retry_secs} seconds and retry to let it (re)start: #{e}"
+          sleep retry_secs
+          (retry_left -= 1).positive? ? retry : raise
+        end
       else
         Chef::Log.debug("Too many lock holders (concurrency:#{concurrency})")
         false
@@ -188,9 +201,17 @@ module Choregraphie
       if already_entered?(opts)
         exit_lock(opts)
         require 'diplomat'
-        result = Diplomat::Kv.put(@path, to_json, cas: @cas, dc: @dc, token: @token)
-        Chef::Log.debug('Someone updated the lock at the same time, will retry') unless result
-        result
+        retry_left = 5
+        begin
+          result = Diplomat::Kv.put(@path, to_json, cas: @cas, dc: @dc, token: @token)
+          Chef::Log.debug('Someone updated the lock at the same time, will retry') unless result
+          result
+        rescue Faraday::ConnectionFailed => e
+          retry_secs = 30
+          Chef::Log.info "Consul did not respond, wait #{retry_secs} seconds and retry to let it (re)start: #{e}"
+          sleep retry_secs
+          (retry_left -= 1).positive? ? retry : raise
+        end
       else
         true
       end
