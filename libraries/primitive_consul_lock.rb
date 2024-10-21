@@ -121,7 +121,7 @@ module Choregraphie
       value = Mash.new({ version: 1, concurrency: concurrency, holders: {} })
       current_lock = begin
         Chef::Log.info "Fetch lock state for #{path}"
-        Diplomat::Kv.get(path, decode_values: true, dc: dc, token: dc)
+        Diplomat::Kv.get(path, decode_values: true, dc: dc, token: token)
       rescue Faraday::ConnectionFailed => e
         retry_secs = 30
         Chef::Log.info "Consul did not respond, wait #{retry_secs} seconds and retry to let it (re)start: #{e}"
