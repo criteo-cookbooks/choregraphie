@@ -18,5 +18,21 @@ module Choregraphie
         options[:token] = options[:consul_token]
       end
     end
+
+    def self.update_backup_url(options)
+      require 'diplomat'
+      return unless options[:consul_backup_url]
+
+      Diplomat.configure do |config|
+        config.url = @options[:consul_backup_url]
+      end
+    end
+
+    def self.reset_url
+      require 'diplomat'
+      Diplomat.configure do |config|
+        config.url = Diplomat::Configuration.parse_consul_addr
+      end
+    end
   end
 end
