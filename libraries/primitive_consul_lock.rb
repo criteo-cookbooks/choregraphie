@@ -117,7 +117,9 @@ module Choregraphie
       dc = kwargs[:dc]
       token = kwargs[:token]
       require 'diplomat'
-      retry_left = 5
+      retry_total_attempts = 5
+      connection_failed_count = 0
+      retry_left = retry_total_attempts
       value = Mash.new({ version: 1, concurrency: concurrency, holders: {} })
       current_lock = begin
         Chef::Log.info "Fetch lock state for #{path}"
@@ -126,12 +128,15 @@ module Choregraphie
         retry_secs = 30
         Chef::Log.info "Consul did not respond, wait #{retry_secs} seconds and retry to let it (re)start: #{e}"
         sleep retry_secs
+        connection_failed_count += 1
+        ConsulCommon.update_backup_url(@options) if connection_failed_count == retry_total_attempts / 2
         (retry_left -= 1).positive? ? retry : raise
       rescue Diplomat::KeyNotFound
         Chef::Log.info "Lock for #{path} did not exist, creating with value #{value}"
         Diplomat::Kv.put(path, value.to_json, cas: 0, dc: dc, token: token) # we ignore success/failure of CaS
         (retry_left -= 1).positive? ? retry : raise
       end.first
+      ConsulCommon.reset_url
       desired_lock = bootstrap_lock(value, current_lock)
       new(path, new_lock: desired_lock, dc: dc, token: token)
     end
