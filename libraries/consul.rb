@@ -19,7 +19,7 @@ module Choregraphie
       end
     end
 
-    def self.update_backup_url(consul_backup_url: nil)
+    def self.update_backup_url(consul_backup_url)
       require 'diplomat'
       return if consul_backup_url.nil?
 
