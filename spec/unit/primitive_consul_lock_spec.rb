@@ -62,7 +62,7 @@ describe Choregraphie::ConsulLock do
       lock = double('lock')
       expect(lock).to receive(:enter).with(name: 'my_node').and_return(true)
 
-      expect(Semaphore).to receive(:get_or_create).with('chef_lock/test', concurrency: 3, dc: nil, token: nil).and_return(lock)
+      expect(Semaphore).to receive(:get_or_create).with('chef_lock/test', concurrency: 3, dc: nil, token: nil, consul_backup_url: nil).and_return(lock)
 
       choregraphie_service.before.each(&:call)
     end

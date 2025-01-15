@@ -51,7 +51,7 @@ module Choregraphie
 
     def semaphore
       # this object cannot be reused after enter/exit
-      semaphore_class.get_or_create(path, concurrency: concurrency, dc: @options[:datacenter], token: @options[:token])
+      semaphore_class.get_or_create(path, concurrency: concurrency, dc: @options[:datacenter], token: @options[:token], consul_backup_url: @options[:consul_backup_url])
     end
 
     def backoff(start_time, current_try)
@@ -129,7 +129,7 @@ module Choregraphie
         Chef::Log.info "Consul did not respond, wait #{retry_secs} seconds and retry to let it (re)start: #{e}"
         sleep retry_secs
         connection_failed_count += 1
-        ConsulCommon.update_backup_url(@options) if connection_failed_count == retry_total_attempts / 2
+        ConsulCommon.update_backup_url(kwargs[:consul_backup_url]) if connection_failed_count == retry_total_attempts / 2
         (retry_left -= 1).positive? ? retry : raise
       rescue Diplomat::KeyNotFound
         Chef::Log.info "Lock for #{path} did not exist, creating with value #{value}"
