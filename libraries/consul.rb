@@ -12,7 +12,7 @@ module Choregraphie
 
       if Diplomat::VERSION < '2.1.0'
         Diplomat.configure do |config|
-          config.acl_token = @options[:consul_token]
+          config.acl_token = options[:consul_token]
         end
       else
         options[:token] = options[:consul_token]
@@ -24,7 +24,7 @@ module Choregraphie
       return unless options[:consul_backup_url]
 
       Diplomat.configure do |config|
-        config.url = @options[:consul_backup_url]
+        config.url = options[:consul_backup_url]
       end
     end
 
