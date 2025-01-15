@@ -19,12 +19,12 @@ module Choregraphie
       end
     end
 
-    def self.update_backup_url(options)
+    def self.update_backup_url(consul_backup_url: nil)
       require 'diplomat'
-      return unless options[:consul_backup_url]
+      return if consul_backup_url.nil?
 
       Diplomat.configure do |config|
-        config.url = options[:consul_backup_url]
+        config.url = consul_backup_url
       end
     end
 
