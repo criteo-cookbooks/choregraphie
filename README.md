@@ -59,7 +59,7 @@ Four very basic primitives:
 
 * Before: `before { ... }` will execute code before protected resources are converged. The block will receive the converged resource as argument.
 * Cleanup: `cleanup { ... }` will execute code at the end of a successful chef-client run. The cleanup block will be executed at *each* chef-client run. This code should thus be efficient and safe to run at the end of all chef-client runs (for instance cleaning a file only if it exists).
-* After: `after { ... }` will execute code at the end of choregraphie. The after block will be executed at the end of choregraphie but *might* be executed after some chef-client run. It does best-effort to avoid running when not necessary, code run in `after` must cope with useless run though.
+* After: `after('name') { ... }` will execute code at the end of choregraphie. The after block will be executed at the end of choregraphie but *might* be executed after some chef-client run. It does best-effort to avoid running when not necessary, code run in `after` must cope with useless run though. It is important to give a unique name to this primitive (within the same choregraphie)
 * Finish: `finish { ... }` will execute code after cleanup stage. There can be only one finish block.
 
 
