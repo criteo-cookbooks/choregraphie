@@ -15,24 +15,14 @@ module Choregraphie
       super
     end
 
-    def register(choregraphie)
-      choregraphie.before do
-        wait_until(:enter) { semaphore.enter(name: @options[:rack], server: @options[:id]) }
-      end
-
-      choregraphie.finish do
-        # HACK: We can ignore failure there since it is only to release
-        # the lock. If there is a temporary failure, we can wait for the
-        # next run to release the lock without compromising safety.
-        # The reason we have to be a bit more relaxed here, is that all
-        # chef run including a choregraphie with this primitive try to
-        # release the lock at the end of a successful run
-        wait_until(:exit, max_failures: 5) { semaphore.exit(name: @options[:rack], server: @options[:id]) }
-      end
-    end
-
     def semaphore_class
       SemaphoreByRack
+    end
+
+    private
+
+    def lock_opts
+      { name: @options[:rack], server: @options[:id] }
     end
   end
 

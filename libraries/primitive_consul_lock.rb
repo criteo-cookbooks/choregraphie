@@ -6,6 +6,8 @@ require 'json'
 # This primitive is based on optimistic concurrency (using compare-and-swap) rather than consul sessions.
 # It allows to support the unavailability of the local consul agent (for reboot, reinstall, ...)
 module Choregraphie
+  class OutdatedPolicyError < RuntimeError; end
+
   class ConsulLock < Primitive
     def initialize(options = {})
       @options = Mash.new(options)
@@ -91,21 +93,66 @@ module Choregraphie
 
     def register(choregraphie)
       choregraphie.before do
-        wait_until(:enter) { semaphore.enter(name: @options[:id]) }
+        wait_until(:enter) { semaphore.enter(**lock_opts) }
+        begin
+          ensure_latest_policy!
+        rescue StandardError
+          release_lock
+          raise
+        end
       end
 
       choregraphie.finish do
-        # HACK: We can ignore failure there since it is only to release
-        # the lock. If there is a temporary failure, we can wait for the
-        # next run to release the lock without compromising safety.
-        # The reason we have to be a bit more relaxed here, is that all
-        # chef run including a choregraphie with this primitive try to
-        # release the lock at the end of a successful run
-        wait_until(:exit, max_failures: 5) { semaphore.exit(name: @options[:id]) }
+        release_lock
       end
     end
 
+    def lock_opts
+      { name: @options[:id] }
+    end
+
+    def release_lock
+      # HACK: We can ignore failure there since it is only to release
+      # the lock. If there is a temporary failure, we can wait for the
+      # next run to release the lock without compromising safety.
+      # The reason we have to be a bit more relaxed here, is that all
+      # chef run including a choregraphie with this primitive try to
+      # release the lock at the end of a successful run
+      wait_until(:exit, max_failures: 5) { semaphore.exit(**lock_opts) }
+    end
+
     private
+
+    # Fail-open on network errors only. HTTP errors (wrong path, auth, etc.)
+    # are re-raised so bugs in this check don't go unnoticed.
+    def ensure_latest_policy!
+      return unless @options[:ensure_latest_policy]
+
+      policy_name  = Chef::Config[:policy_name]
+      policy_group = Chef::Config[:policy_group]
+
+      return unless policy_name && policy_group
+
+      Chef::Log.info "Checking policy freshness for #{policy_name}/#{policy_group}"
+
+      require 'chef/server_api'
+      api = Chef::ServerAPI.new(Chef::Config[:chef_server_url])
+      server_policy = api.get("policy_groups/#{policy_group}/policies/#{policy_name}")
+      server_revision = server_policy['revision_id']
+
+      current_revision = Chef.run_context.node.policy_revision
+
+      return if server_revision == current_revision
+
+      raise OutdatedPolicyError,
+            "Policy #{policy_name}/#{policy_group} has a newer revision on the server " \
+            "(running: #{current_revision}, server: #{server_revision}). " \
+            "Aborting run to pick up the new version."
+    rescue Net::HTTPExceptions, OutdatedPolicyError
+      raise
+    rescue StandardError => e
+      Chef::Log.warn "Failed to check policy freshness: #{e.class} - #{e.message}. Continuing anyway (fail-open)."
+    end
 
     def path
       @options[:path].sub(%r{^/}, '')

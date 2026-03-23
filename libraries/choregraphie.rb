@@ -146,12 +146,12 @@ module Choregraphie
         resource.allowed_actions
                 .reject { |a| a == :nothing }
                 .each do |a|
-          provider = resource.provider_for_action(a)
-          next if provider.whyrun_supported?
+                  provider = resource.provider_for_action(a)
+                  next if provider.whyrun_supported?
 
-          Chef::Log.warn 'Resource providers must support whyrun in order to be used by choregraphie'
-          Chef::Log.warn 'If you are defining a custom resource see https://github.com/chef/chef/issues/4537 for a possible workaround'
-          raise "Provider for #{a} on #{resource.declared_key} must support whyrun"
+                  Chef::Log.warn 'Resource providers must support whyrun in order to be used by choregraphie'
+                  Chef::Log.warn 'If you are defining a custom resource see https://github.com/chef/chef/issues/4537 for a possible workaround'
+                  raise "Provider for #{a} on #{resource.declared_key} must support whyrun"
         end
       else
         Chef::Log.warn "#{resource_name} is not yet defined ?"
