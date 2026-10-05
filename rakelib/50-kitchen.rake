@@ -10,9 +10,8 @@ task :test_kitchen do
       instance.test(:always)
     end
   else
-    threads = []
-    config.instances.each do |instance|
-      threads << Thread.new { instance.test(:always) }
+    threads = config.instances.map do |instance|
+      Thread.new { instance.test(:always) }
     end
     threads.map(&:join)
   end

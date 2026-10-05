@@ -19,7 +19,7 @@ describe Choregraphie::Semaphore do
   end
 
   let(:value) do
-    Base64.encode64({ version: 1, concurrency: 2, holders: { another_node: 12_345 } }.to_json).gsub(/\n/, '')
+    Base64.encode64({ version: 1, concurrency: 2, holders: { another_node: 12_345 } }.to_json).gsub("\n", '')
   end
 
   let(:existing_response) do

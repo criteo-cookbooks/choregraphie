@@ -28,6 +28,11 @@ Chef/Sharing/InvalidLicenseString:
 Chef/Style/CommentFormat:
   Enabled: false
 
+# Lint
+# Cop disable directives are still needed by the plain rubocop run (.rubocop.yml)
+Lint/RedundantCopDisableDirective:
+  Enabled: false
+
 # Layout
 Layout/RescueEnsureAlignment:
   Enabled: false
