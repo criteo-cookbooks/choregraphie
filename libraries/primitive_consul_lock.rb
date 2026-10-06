@@ -31,6 +31,7 @@ module Choregraphie
                          opts = @options[:service][:options] || {}
                          opts[:dc] = @options[:datacenter] if @options[:datacenter]
                          opts[:token] = @options[:token] if @options[:token]
+                         opts[:http_addr] = @options[:http_addr] if @options[:http_addr]
                          total = Diplomat::Service.get(
                            @options[:service][:name],
                            :all,
@@ -51,7 +52,14 @@ module Choregraphie
 
     def semaphore
       # this object cannot be reused after enter/exit
-      semaphore_class.get_or_create(path, concurrency: concurrency, dc: @options[:datacenter], token: @options[:token], consul_backup_url: @options[:consul_backup_url])
+      semaphore_class.get_or_create(
+        path,
+        concurrency: concurrency,
+        dc: @options[:datacenter],
+        token: @options[:token],
+        consul_backup_url: @options[:consul_backup_url],
+        http_addr: @options[:http_addr],
+      )
     end
 
     def backoff(start_time, current_try)
@@ -116,6 +124,7 @@ module Choregraphie
     def self.get_or_create(path, concurrency:, **kwargs)
       dc = kwargs[:dc]
       token = kwargs[:token]
+      http_addr = kwargs[:http_addr]
       require 'diplomat'
       retry_total_attempts = 5
       connection_failed_count = 0
@@ -123,7 +132,7 @@ module Choregraphie
       value = Mash.new({ version: 1, concurrency: concurrency, holders: {} })
       current_lock = begin
         Chef::Log.info "Fetch lock state for #{path}"
-        Diplomat::Kv.get(path, decode_values: true, dc: dc, token: token)
+        Diplomat::Kv.get(path, decode_values: true, dc: dc, token: token, http_addr: http_addr)
       rescue Faraday::ConnectionFailed => e
         retry_secs = 30
         Chef::Log.info "Consul did not respond, wait #{retry_secs} seconds and retry to let it (re)start: #{e}"
@@ -133,12 +142,12 @@ module Choregraphie
         (retry_left -= 1).positive? ? retry : raise
       rescue Diplomat::KeyNotFound
         Chef::Log.info "Lock for #{path} did not exist, creating with value #{value}"
-        Diplomat::Kv.put(path, value.to_json, cas: 0, dc: dc, token: token) # we ignore success/failure of CaS
+        Diplomat::Kv.put(path, value.to_json, cas: 0, dc: dc, token: token, http_addr: http_addr) # we ignore success/failure of CaS
         (retry_left -= 1).positive? ? retry : raise
       end.first
       ConsulCommon.reset_url
       desired_lock = bootstrap_lock(value, current_lock)
-      new(path, new_lock: desired_lock, dc: dc, token: token)
+      new(path, new_lock: desired_lock, dc: dc, token: token, http_addr: http_addr)
     end
 
     def self.bootstrap_lock(desired_value, current_lock)
@@ -158,6 +167,7 @@ module Choregraphie
       @cas  = new_lock['ModifyIndex']
       @dc   = dc
       @token = token
+      @http_addr = kwargs[:http_addr]
     end
 
     def already_entered?(opts)
@@ -182,7 +192,7 @@ module Choregraphie
         require 'diplomat'
         retry_left = 5
         begin
-          result = Diplomat::Kv.put(@path, to_json, cas: @cas, dc: @dc, token: @token)
+          result = Diplomat::Kv.put(@path, to_json, cas: @cas, dc: @dc, token: @token, http_addr: @http_addr)
           Chef::Log.debug('Someone updated the lock at the same time, will retry') unless result
           result
         rescue Faraday::ConnectionFailed => e
@@ -208,7 +218,7 @@ module Choregraphie
         require 'diplomat'
         retry_left = 5
         begin
-          result = Diplomat::Kv.put(@path, to_json, cas: @cas, dc: @dc, token: @token)
+          result = Diplomat::Kv.put(@path, to_json, cas: @cas, dc: @dc, token: @token, http_addr: @http_addr)
           Chef::Log.debug('Someone updated the lock at the same time, will retry') unless result
           result
         rescue Faraday::ConnectionFailed => e

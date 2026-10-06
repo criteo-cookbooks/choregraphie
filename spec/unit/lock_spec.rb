@@ -19,7 +19,7 @@ describe Choregraphie::Semaphore do
   end
 
   let(:value) do
-    Base64.encode64({ version: 1, concurrency: 2, holders: { another_node: 12_345 } }.to_json).gsub(/\n/, '')
+    Base64.encode64({ version: 1, concurrency: 2, holders: { another_node: 12_345 } }.to_json).gsub("\n", '')
   end
 
   let(:existing_response) do
@@ -51,6 +51,19 @@ describe Choregraphie::Semaphore do
           .to_return(status: 200, body: 'true')
 
         expect(Semaphore.get_or_create('check-lock/my_lock', concurrency: 2, dc: nil, token: nil)).to be_a(Semaphore)
+      end
+    end
+
+    context 'when http_addr is set' do
+      it 'fetches and enters the lock through http_addr' do
+        stub_request(:get, 'https://lock.example.com/v1/kv/check-lock/my_lock')
+          .to_return(existing_response)
+        stub_request(:put, 'https://lock.example.com/v1/kv/check-lock/my_lock?cas=1')
+          .with(body: /"holders":{"another_node":12345,"myself":".*"}/)
+          .to_return(status: 200, body: 'true')
+
+        lock = Semaphore.get_or_create('check-lock/my_lock', concurrency: 2, dc: nil, token: nil, http_addr: 'https://lock.example.com')
+        expect(lock.enter(name: 'myself')).to be true
       end
     end
   end
