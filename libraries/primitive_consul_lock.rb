@@ -19,6 +19,9 @@ module Choregraphie
 
       @options[:backoff] ||= 5 # seconds
 
+      # explicit option > node attribute > global Diplomat configuration
+      @options[:http_addr] = default_http_addr unless @options.key?(:http_addr)
+
       ConsulCommon.setup_consul(@options)
 
       # this block could be used to configure diplomat if needed
@@ -114,6 +117,10 @@ module Choregraphie
     end
 
     private
+
+    def default_http_addr
+      Chef.run_context&.node&.read('choregraphie', 'consul_lock', 'http_addr')
+    end
 
     def path
       @options[:path].sub(%r{^/}, '')
