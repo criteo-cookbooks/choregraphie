@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        instance: ['default-el8', 'default-el10', 'default-ubuntu-2604']
+        instance: ['default-centos-8', 'default-ubuntu-2404', 'default-fedora-40']
     steps:
       - uses: actions/checkout@v2
       - uses: ruby/setup-ruby@v1
