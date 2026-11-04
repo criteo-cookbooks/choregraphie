@@ -1,4 +1,5 @@
 require_relative '../../libraries/primitive_consul_lock'
+require_relative '../../libraries/primitive_consul_rack_lock'
 require 'webmock/rspec'
 require 'base64'
 require 'diplomat'
@@ -65,6 +66,48 @@ describe Choregraphie::ConsulLock do
       expect(Semaphore).to receive(:get_or_create).with('chef_lock/test', concurrency: 3, dc: nil, token: nil, consul_backup_url: nil, http_addr: nil).and_return(lock)
 
       choregraphie_service.before.each(&:call)
+    end
+  end
+
+  describe 'http_addr resolution' do
+    let(:node) { Chef::Node.new }
+    let(:run_context) { double('run_context', node: node) }
+
+    before { allow(Chef).to receive(:run_context).and_return(run_context) }
+
+    def http_addr_of(options)
+      Choregraphie::ConsulLock.new({ path: '/chef_lock/test', id: 'my_node' }.merge(options))
+                              .instance_variable_get(:@options)[:http_addr]
+    end
+
+    it 'uses the node attribute when http_addr is not given' do
+      node.default['choregraphie']['consul_lock']['http_addr'] = 'https://lock.example.com:443'
+      expect(http_addr_of({})).to eq('https://lock.example.com:443')
+    end
+
+    it 'prefers an explicit http_addr over the node attribute' do
+      node.default['choregraphie']['consul_lock']['http_addr'] = 'https://lock.example.com:443'
+      expect(http_addr_of(http_addr: 'https://other.example.com')).to eq('https://other.example.com')
+    end
+
+    it 'lets an explicit nil http_addr opt out of the node attribute' do
+      node.default['choregraphie']['consul_lock']['http_addr'] = 'https://lock.example.com:443'
+      expect(http_addr_of(http_addr: nil)).to be_nil
+    end
+
+    it 'is nil when the attribute is unset' do
+      expect(http_addr_of({})).to be_nil
+    end
+
+    it 'is nil outside of a chef run' do
+      allow(Chef).to receive(:run_context).and_return(nil)
+      expect(http_addr_of({})).to be_nil
+    end
+
+    it 'applies to consul_rack_lock' do
+      node.default['choregraphie']['consul_lock']['http_addr'] = 'https://lock.example.com:443'
+      rack_lock = Choregraphie::ConsulRackLock.new(path: '/chef_lock/test', id: 'my_node', rack: 'rack1')
+      expect(rack_lock.instance_variable_get(:@options)[:http_addr]).to eq('https://lock.example.com:443')
     end
   end
 end
