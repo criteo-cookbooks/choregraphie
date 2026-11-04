@@ -16,27 +16,24 @@ verifier:
   name: inspec
 
 platforms:
-- name: centos-8
+- name: el8
   driver:
-    image: centos:8
+    image: dokken/centos-stream-8
     intermediate_instructions:
       - RUN dnf clean all
       # - RUN dnf install -y sudo # Centos 8 deprecated see https://blog.centos.org/2023/04/end-dates-are-coming-for-centos-stream-8-and-centos-linux-7/
     pid_one_command: /usr/lib/systemd/systemd
 
-- name: fedora-40
+- name: el10
   driver:
-    image: fedora:40
+    image: dokken/centos-stream-10
     intermediate_instructions:
-    - RUN dnf clean all
-    - RUN dnf install -y sudo
-    - RUN dnf install -y libxcrypt-compat
-    - RUN dnf install -y systemd
-    pid_one_command: /lib/systemd/systemd
+      - RUN dnf clean all
+    pid_one_command: /usr/lib/systemd/systemd
 
-- name: ubuntu-24.04
+- name: ubuntu-26.04
   driver:
-    image: ubuntu:24.04
+    image: dokken/ubuntu-26.04:sha-eabc56b
     pid_one_command: /usr/bin/systemd
     intermediate_instructions:
       - RUN /usr/bin/apt-get -y update
