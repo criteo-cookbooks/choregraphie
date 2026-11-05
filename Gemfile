@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'chef', '>= 17.9.26'
+gem 'chef', '>= 17.9.26', '< 19'
 gem 'chefspec', '>= 9.3.1'
 
 gem 'berkshelf'
